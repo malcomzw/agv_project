@@ -27,7 +27,13 @@ pipeline {
                         -v ${WORKSPACE}:/workspace \
                         -w /workspace/ros_ws \
                         ${DOCKER_IMAGE}:${DOCKER_TAG} \
-                        /bin/bash -c 'source /opt/ros/noetic/setup.bash && catkin init && catkin build'
+                        /bin/bash -c '
+                            source /opt/ros/noetic/setup.bash && \
+                            rm -rf build devel install logs && \
+                            catkin init && \
+                            catkin config --install && \
+                            catkin build
+                        '
                 """
             }
         }
@@ -39,7 +45,11 @@ pipeline {
                         -v ${WORKSPACE}:/workspace \
                         -w /workspace/ros_ws \
                         ${DOCKER_IMAGE}:${DOCKER_TAG} \
-                        /bin/bash -c 'source /opt/ros/noetic/setup.bash && source devel/setup.bash && catkin test demo_pkg --no-deps'
+                        /bin/bash -c '
+                            source /opt/ros/noetic/setup.bash && \
+                            source install/setup.bash && \
+                            catkin test demo_pkg --no-deps
+                        '
                 """
             }
             post {
