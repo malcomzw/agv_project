@@ -4,12 +4,11 @@ project(demo_pkg)
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   std_msgs
-  geometry_msgs
   rostest
 )
 
 catkin_package(
-  CATKIN_DEPENDS roscpp std_msgs geometry_msgs
+  CATKIN_DEPENDS roscpp std_msgs
 )
 
 include_directories(
