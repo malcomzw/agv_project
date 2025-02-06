@@ -5,6 +5,7 @@ pipeline {
         DOCKER_IMAGE = 'ros-jenkins'
         DOCKER_TAG = "${BUILD_ID}"
         ROS_WORKSPACE = "${WORKSPACE}/ros_ws"
+        BASH_SOURCE = '/bin/bash'
     }
 
     stages {
@@ -24,24 +25,21 @@ pipeline {
         }
 
         stage('Test') {
-            agent {
-                docker {
-                    image "${DOCKER_IMAGE}:${DOCKER_TAG}"
-                    args '--network=host'
-                    reuseNode true
-                }
-            }
             steps {
                 script {
-                    sh '''
-                        #!/bin/bash
-                        source /opt/ros/noetic/setup.bash
-                        cd ${ROS_WORKSPACE}
-                        catkin clean -y
-                        catkin build
-                        source devel/setup.bash
-                        catkin test demo_pkg --no-deps
-                    '''
+                    docker.image("${DOCKER_IMAGE}:${DOCKER_TAG}").inside('--entrypoint="" --network=host') {
+                        sh '''
+                            #!/bin/bash
+                            set -e
+                            . /opt/ros/noetic/setup.bash
+                            cd ${ROS_WORKSPACE}
+                            catkin init
+                            catkin clean -y
+                            catkin build
+                            . devel/setup.bash
+                            catkin test demo_pkg --no-deps
+                        '''
+                    }
                 }
             }
             post {

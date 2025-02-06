@@ -9,8 +9,12 @@ RUN apt-get update && apt-get install -y \
 # Create workspace directory
 WORKDIR /workspace
 
-# Source ROS setup in bashrc
-RUN echo 'source /opt/ros/noetic/setup.bash' >> ~/.bashrc
+# Create a ROS entrypoint script
+COPY docker/scripts/ros_entrypoint.sh /
+RUN chmod +x /ros_entrypoint.sh
 
-# By default, run bash
-CMD ["/bin/bash"]
+# Source ROS setup in bashrc
+RUN echo 'source /opt/ros/noetic/setup.bash' >> /etc/bash.bashrc
+
+ENTRYPOINT ["/ros_entrypoint.sh"]
+CMD ["bash"]
