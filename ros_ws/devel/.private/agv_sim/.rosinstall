@@ -1,0 +1,2 @@
+- setup-file:
+    local-name: /home/malcom/ros-jenkins-pipeline/ros_ws/devel/.private/agv_sim/setup.sh

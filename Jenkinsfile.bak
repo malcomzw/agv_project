@@ -1,0 +1,215 @@
+pipeline {
+    agent {
+        docker {
+            image 'my-ros-cicd:latest'
+            args '--entrypoint= -u jenkins'
+        }
+    }
+
+    environment {
+        ROS_WS = "${WORKSPACE}"
+        CATKIN_OPTIONS = "-DCMAKE_BUILD_TYPE=Release"
+        COVERAGE_ENABLED = "true"
+    }
+
+    stages {
+        stage('Workspace Setup') {
+            steps {
+                script {
+                    sh '''
+                        #!/bin/bash
+                        set -e
+                        . /home/jenkins/setup.sh
+                        
+                        # Create and configure catkin workspace
+                        mkdir -p ${ROS_WS}/src
+                        cd ${ROS_WS}
+                        catkin init
+                        catkin config --extend /opt/ros/noetic
+                        catkin config --cmake-args ${CATKIN_OPTIONS}
+                    '''
+                }
+            }
+        }
+
+        stage('Copy Source') {
+            steps {
+                dir('src/test_package') {
+                    sh '''
+                        #!/bin/bash
+                        set -e
+                        mkdir -p .
+                        cp -r ${WORKSPACE}/src/test_package/* .
+                    '''
+                }
+            }
+        }
+
+        stage('Build') {
+            steps {
+                script {
+                    sh '''
+                        #!/bin/bash
+                        set -e
+                        . /home/jenkins/setup.sh
+                        cd ${ROS_WS}
+                        catkin build --no-status --summarize
+                    '''
+                }
+            }
+            post {
+                failure {
+                    archiveArtifacts artifacts: "${ROS_WS}/logs/**/*.txt", allowEmptyArchive: true
+                }
+            }
+        }
+
+        stage('Unit Tests') {
+            steps {
+                script {
+                    sh '''
+                        #!/bin/bash
+                        set -e
+                        . /home/jenkins/setup.sh
+                        cd ${ROS_WS}
+                        catkin build --no-deps --catkin-make-args run_tests
+                        catkin_test_results
+                    '''
+                }
+            }
+            post {
+                always {
+                    junit allowEmptyResults: true, testResults: "${ROS_WS}/build/test_results/**/*.xml"
+
+                    script {
+                        if (env.COVERAGE_ENABLED == 'true') {
+                            sh '''
+                                #!/bin/bash
+                                set -e
+                                cd ${ROS_WS}
+                                catkin build --no-deps --catkin-make-args coverage_report || true
+                                for f in $(find . -name coverage.xml); do cp "$f" "${WORKSPACE}/"; done
+                            '''
+                            cobertura coberturaReportFile: 'coverage.xml'
+                        }
+                    }
+                }
+                failure {
+                    archiveArtifacts artifacts: "${ROS_WS}/logs/**/*.txt", allowEmptyArchive: true
+                }
+            }
+        }
+
+        stage('Integration Tests') {
+            steps {
+                script {
+                    sh '''
+                        #!/bin/bash
+                        set -e
+                        . /home/jenkins/setup.sh
+                        cd ${ROS_WS}
+                        . devel/setup.bash
+                        rostest test_package integration_test.test || true
+                    '''
+                }
+            }
+            post {
+                failure {
+                    archiveArtifacts artifacts: "${ROS_WS}/.ros/*.log", allowEmptyArchive: true
+                }
+            }
+        }
+
+        stage('Simulation Tests') {
+            steps {
+                script {
+                    sh '''
+                        #!/bin/bash
+                        set -e
+                        . /home/jenkins/setup.sh
+                        cd ${ROS_WS}
+                        . devel/setup.bash
+
+                        # Launch simulation test
+                        rostest test_package simulation_test.test || true
+                    '''
+                }
+            }
+            post {
+                failure {
+                    archiveArtifacts artifacts: "${ROS_WS}/.ros/*.log", allowEmptyArchive: true
+                }
+            }
+        }
+
+        stage('Generate Reports') {
+            steps {
+                script {
+                    def buildStatus = currentBuild.result ?: 'SUCCESS'
+                    def buildTime = new Date()
+                    def testResults = junit allowEmptyResults: true, testResults: "${ROS_WS}/build/test_results/**/*.xml"
+
+                    // We'll create an HTML summary.
+                    writeFile file: 'test_report.html', text: """
+                        <html>
+                            <head>
+                                <title>ROS Build Report</title>
+                                <style>
+                                    body { font-family: Arial, sans-serif; margin: 20px; }
+                                    .success { color: green; }
+                                    .failure { color: red; }
+                                    table { border-collapse: collapse; width: 100%; }
+                                    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                                    th { background-color: #f2f2f2; }
+                                </style>
+                            </head>
+                            <body>
+                                <h1>ROS Build Results</h1>
+                                <p>Build Status: <span class="${buildStatus == 'SUCCESS' ? 'success' : 'failure'}">${buildStatus}</span></p>
+                                <table>
+                                    <tr>
+                                        <th>Total Tests</th>
+                                        <th>Passed</th>
+                                        <th>Failed</th>
+                                        <th>Skipped</th>
+                                    </tr>
+                                    <tr>
+                                        <td>${testResults.totalCount}</td>
+                                        <td class="success">${testResults.passCount}</td>
+                                        <td class="failure">${testResults.failCount}</td>
+                                        <td>${testResults.skipCount}</td>
+                                    </tr>
+                                </table>
+                            </body>
+                        </html>
+                    """
+
+                    // Archive the HTML
+                    archiveArtifacts artifacts: 'test_report.html', allowEmptyArchive: false
+
+                    // (Optional) publish HTML on Jenkins
+                    publishHTML([
+                        allowMissing: true,
+                        alwaysLinkToLastBuild: false,
+                        keepAll: true,
+                        reportDir: '.',
+                        reportFiles: 'test_report.html',
+                        reportName: 'Build Report'
+                    ])
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            script {
+                // Archive build artifacts if the workspace exists
+                if (fileExists(env.ROS_WS)) {
+                    archiveArtifacts artifacts: "${env.ROS_WS}/build/**/*", allowEmptyArchive: true, fingerprint: true
+                }
+            }
+            cleanWs()
+        }
+    }
+}

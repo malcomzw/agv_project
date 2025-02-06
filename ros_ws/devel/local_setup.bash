@@ -1,0 +1,1 @@
+/home/malcom/ros-jenkins-pipeline/ros_ws/devel/.private/catkin_tools_prebuild/local_setup.bash

@@ -1,0 +1,19 @@
+<sdf version="1.6">
+  <world name="test_world">
+    <include>
+      <uri>model://sun</uri>
+    </include>
+    <model name="test_platform">
+      <static>true</static>
+      <link name="base_link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>1 1 0.1</size>
+            </box>
+          </geometry>
+        </collision>
+      </link>
+    </model>
+  </world>
+</sdf>

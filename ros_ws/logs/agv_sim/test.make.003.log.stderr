@@ -1,0 +1,4 @@
+[33m[ WARN] [1738856248.116529044]: The root link base_link has an inertia specified in the URDF, but KDL does not support a root link with an inertia.  As a workaround, you can add an extra dummy link to your URDF.[0m
+[33m[ WARN] [1738856250.290596348, 0.308000000]: DiffDrive(ns = /agv/): missing <rosDebugLevel> default is na[0m
+[33m[ WARN] [1738856250.291451194, 0.308000000]: DiffDrive(ns = /agv/): missing <odometrySource> default is 1[0m
+[33m[ WARN] [1738856250.291550429, 0.308000000]: GazeboRosDiffDrive Plugin (ns = ) missing <publishTf>, defaults to 1[0m

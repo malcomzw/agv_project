@@ -1,0 +1,42 @@
+[1m[30m-- run_tests.py: execute commands[0m[0m
+[1m[30m  /usr/bin/python3 /opt/ros/noetic/share/rostest/cmake/../../../bin/rostest --pkgdir=/home/malcom/ros-jenkins-pipeline/ros_ws/src/agv_sim --package=agv_sim --results-filename test_integration_test.xml --results-base-dir "/home/malcom/ros-jenkins-pipeline/ros_ws/build/agv_sim/test_results" /home/malcom/ros-jenkins-pipeline/ros_ws/src/agv_sim/test/integration_test.test[0m[0m
+[/home/malcom/ros-jenkins-pipeline/ros_ws/src/agv_sim/test/integration_test.test] is not a launch file name
+Cannot find results, writing failure results to '/home/malcom/ros-jenkins-pipeline/ros_ws/build/agv_sim/test_results/agv_sim/MISSING-rostest-test_integration_test.xml'
+[1m[30m-- run_tests.py: execute commands[0m[0m
+[1m[30m  /usr/bin/python3 /opt/ros/noetic/share/rostest/cmake/../../../bin/rostest --pkgdir=/home/malcom/ros-jenkins-pipeline/ros_ws/src/agv_sim --package=agv_sim --results-filename test_simulation_test.xml --results-base-dir "/home/malcom/ros-jenkins-pipeline/ros_ws/build/agv_sim/test_results" /home/malcom/ros-jenkins-pipeline/ros_ws/src/agv_sim/test/simulation_test.test[0m[0m
+... logging to /home/malcom/.ros/log/rostest-ubuntu-18486.log
+[ROSUNIT] Outputting test results to /home/malcom/ros-jenkins-pipeline/ros_ws/build/agv_sim/test_results/agv_sim/rostest-test_simulation_test.xml
+[33m[ WARN] [1738856074.698431408]: The root link base_link has an inertia specified in the URDF, but KDL does not support a root link with an inertia.  As a workaround, you can add an extra dummy link to your URDF.[0m
+[0m[ INFO] [1738856075.464189294]: Finished loading Gazebo ROS API Plugin.[0m
+[0m[ INFO] [1738856075.465703190]: waitForService: Service [/gazebo/set_physics_properties] has not been advertised, waiting...[0m
+[0m[ INFO] [1738856076.322648293]: waitForService: Service [/gazebo/set_physics_properties] is now available.[0m
+
+[0m[ INFO] [1738856076.380147658, 0.044000000]: Physics dynamic reconfigure ready.[0m
+
+[0m[ INFO] [1738856076.754855730, 0.119000000]: Laser Plugin: Using the 'robotNamespace' param: '/'[0m
+
+[0m[ INFO] [1738856076.755199461, 0.119000000]: Starting Laser Plugin (ns = /)[0m
+
+[0m[ INFO] [1738856076.758763261, 0.119000000]: Laser Plugin (ns = /)  <tf_prefix_>, set to ""[0m
+[0m[ INFO] [1738856076.841660705, 0.119000000]: Starting plugin DiffDrive(ns = /agv/)[0m
+[33m[ WARN] [1738856076.841771625, 0.119000000]: DiffDrive(ns = /agv/): missing <rosDebugLevel> default is na[0m
+[0m[ INFO] [1738856076.842418086, 0.119000000]: DiffDrive(ns = /agv/): <tf_prefix> = [0m
+[33m[ WARN] [1738856076.842749849, 0.119000000]: DiffDrive(ns = /agv/): missing <odometrySource> default is 1[0m
+[33m[ WARN] [1738856076.842877003, 0.119000000]: GazeboRosDiffDrive Plugin (ns = ) missing <publishTf>, defaults to 1[0m
+[0m[ INFO] [1738856076.843590288, 0.119000000]: DiffDrive(ns = /agv/): Advertise joint_states[0m
+[0m[ INFO] [1738856076.844161696, 0.119000000]: DiffDrive(ns = /agv/): Try to subscribe to cmd_vel[0m
+[0m[ INFO] [1738856076.846140780, 0.119000000]: DiffDrive(ns = /agv/): Subscribe to cmd_vel[0m
+[0m[ INFO] [1738856076.846653378, 0.119000000]: DiffDrive(ns = /agv/): Advertise odom on odom [0m
+[Testcase: testsimulation_test] ... ok
+
+[ROSTEST]-----------------------------------------------------------------------
+
+[agv_sim.rosunit-simulation_test/test_robot_movement][passed]
+
+SUMMARY
+[32m * RESULT: SUCCESS[0m
+ * TESTS: 1
+ * ERRORS: 0
+ * FAILURES: 0
+
+rostest log file is in /home/malcom/.ros/log/rostest-ubuntu-18486.log

@@ -1,0 +1,5 @@
+<?xml version="1.0"?>
+<launch>
+  <!-- This is a dummy test that will always pass -->
+  <test test-name="demo_test" pkg="demo_pkg" type="demo_test.py" />
+</launch>
