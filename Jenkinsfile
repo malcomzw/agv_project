@@ -8,25 +8,15 @@ pipeline {
     }
 
     stages {
-        stage('Build Docker') {
+        stage('Prepare Workspace') {
             steps {
-                sh "docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} -f docker/Dockerfile ."
+                checkout scm
             }
         }
 
-        stage('Initialize Workspace') {
+        stage('Build Docker') {
             steps {
-                sh """
-                    docker run --rm \
-                        -v ${WORKSPACE}:/workspace \
-                        -w /workspace/ros_ws \
-                        ${DOCKER_IMAGE}:${DOCKER_TAG} \
-                        bash -c '
-                            source /opt/ros/noetic/setup.bash && \
-                            rm -rf build devel install && \
-                            catkin init && \
-                            catkin config --install'
-                """
+                sh "docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} -f docker/Dockerfile ."
             }
         }
 
@@ -37,9 +27,7 @@ pipeline {
                         -v ${WORKSPACE}:/workspace \
                         -w /workspace/ros_ws \
                         ${DOCKER_IMAGE}:${DOCKER_TAG} \
-                        bash -c '
-                            source /opt/ros/noetic/setup.bash && \
-                            catkin build --no-status'
+                        /bin/bash -c 'source /opt/ros/noetic/setup.bash && catkin init && catkin build'
                 """
             }
         }
@@ -51,19 +39,21 @@ pipeline {
                         -v ${WORKSPACE}:/workspace \
                         -w /workspace/ros_ws \
                         ${DOCKER_IMAGE}:${DOCKER_TAG} \
-                        bash -c '
-                            source /opt/ros/noetic/setup.bash && \
-                            source devel/setup.bash && \
-                            catkin test demo_pkg --no-deps'
+                        /bin/bash -c 'source /opt/ros/noetic/setup.bash && source devel/setup.bash && catkin test demo_pkg --no-deps'
                 """
+            }
+            post {
+                always {
+                    junit allowEmptyResults: true, testResults: '${ROS_WORKSPACE}/build/test_results/**/*.xml'
+                }
             }
         }
     }
 
     post {
         always {
-            sh "docker rmi ${DOCKER_IMAGE}:${DOCKER_TAG} || true"
             cleanWs()
+            sh "docker rmi ${DOCKER_IMAGE}:${DOCKER_TAG} || true"
         }
     }
 }

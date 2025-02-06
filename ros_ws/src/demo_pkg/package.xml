@@ -2,19 +2,16 @@
 <package format="2">
   <name>demo_pkg</name>
   <version>0.1.0</version>
-  <description>Demo ROS package for Jenkins pipeline</description>
-  
-  <maintainer email="maintainer@example.com">Maintainer Name</maintainer>
+  <description>Demo package for Jenkins CI/CD pipeline testing</description>
+  <maintainer email="malcom@example.com">Malcom</maintainer>
   <license>MIT</license>
 
   <buildtool_depend>catkin</buildtool_depend>
   
-  <build_depend>roscpp</build_depend>
-  <build_depend>std_msgs</build_depend>
-  <build_depend>rostest</build_depend>
-  
-  <exec_depend>roscpp</exec_depend>
-  <exec_depend>std_msgs</exec_depend>
+  <depend>roscpp</depend>
+  <depend>rospy</depend>
+  <depend>std_msgs</depend>
   
   <test_depend>rostest</test_depend>
+  <test_depend>rosunit</test_depend>
 </package>
