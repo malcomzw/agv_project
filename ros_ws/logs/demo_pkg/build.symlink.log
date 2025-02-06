@@ -1,0 +1,3 @@
+Symlinking /home/malcom/ros-jenkins-pipeline/ros_ws/devel/share/demo_pkg/cmake/demo_pkgConfig.cmake
+Symlinking /home/malcom/ros-jenkins-pipeline/ros_ws/devel/share/demo_pkg/cmake/demo_pkgConfig-version.cmake
+Symlinking /home/malcom/ros-jenkins-pipeline/ros_ws/devel/lib/pkgconfig/demo_pkg.pc

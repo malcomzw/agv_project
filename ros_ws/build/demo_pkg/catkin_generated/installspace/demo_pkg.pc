@@ -1,0 +1,8 @@
+prefix=/home/malcom/ros-jenkins-pipeline/ros_ws/install
+
+Name: demo_pkg
+Description: Description of demo_pkg
+Version: 0.1.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: roscpp std_msgs geometry_msgs

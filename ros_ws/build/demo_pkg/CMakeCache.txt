@@ -215,7 +215,7 @@ CMAKE_PROJECT_DESCRIPTION:STATIC=
 CMAKE_PROJECT_HOMEPAGE_URL:STATIC=
 
 //Value Computed by CMake
-CMAKE_PROJECT_NAME:STATIC=agv_sim
+CMAKE_PROJECT_NAME:STATIC=demo_pkg
 
 //Value Computed by CMake
 CMAKE_PROJECT_VERSION:STATIC=1.10.0
@@ -374,6 +374,9 @@ UBUNTU:BOOL=TRUE
 UBUNTU_FOCAL:BOOL=TRUE
 
 //Path to a file.
+_file_name:FILEPATH=/home/malcom/ros-jenkins-pipeline/ros_ws/src/demo_pkg/test/demo_test.test
+
+//Path to a file.
 _gmock_INCLUDES:FILEPATH=/usr/src/googletest/googlemock/include/gmock/gmock.h
 
 //Path to a file.
@@ -385,71 +388,17 @@ _gtest_INCLUDES:FILEPATH=/usr/include/gtest/gtest.h
 //Path to a file.
 _gtest_SOURCES:FILEPATH=/usr/src/gtest/src/gtest.cc
 
-//The directory containing a CMake configuration file for actionlib.
-actionlib_DIR:PATH=/opt/ros/noetic/share/actionlib/cmake
-
-//The directory containing a CMake configuration file for actionlib_msgs.
-actionlib_msgs_DIR:PATH=/opt/ros/noetic/share/actionlib_msgs/cmake
-
-//Value Computed by CMake
-agv_sim_BINARY_DIR:STATIC=/home/malcom/ros-jenkins-pipeline/ros_ws/build/demo_pkg
-
-//Value Computed by CMake
-agv_sim_SOURCE_DIR:STATIC=/home/malcom/ros-jenkins-pipeline/ros_ws/src/agv_sim
-
-//The directory containing a CMake configuration file for angles.
-angles_DIR:PATH=/opt/ros/noetic/share/angles/cmake
-
-//The directory containing a CMake configuration file for bond.
-bond_DIR:PATH=/opt/ros/noetic/share/bond/cmake
-
-//The directory containing a CMake configuration file for bondcpp.
-bondcpp_DIR:PATH=/opt/ros/noetic/share/bondcpp/cmake
-
-//The directory containing a CMake configuration file for camera_calibration_parsers.
-camera_calibration_parsers_DIR:PATH=/opt/ros/noetic/share/camera_calibration_parsers/cmake
-
-//The directory containing a CMake configuration file for camera_info_manager.
-camera_info_manager_DIR:PATH=/opt/ros/noetic/share/camera_info_manager/cmake
-
 //The directory containing a CMake configuration file for catkin.
 catkin_DIR:PATH=/opt/ros/noetic/share/catkin/cmake
-
-//The directory containing a CMake configuration file for class_loader.
-class_loader_DIR:PATH=/opt/ros/noetic/share/class_loader/cmake
 
 //The directory containing a CMake configuration file for cpp_common.
 cpp_common_DIR:PATH=/opt/ros/noetic/share/cpp_common/cmake
 
-//The directory containing a CMake configuration file for dynamic_reconfigure.
-dynamic_reconfigure_DIR:PATH=/opt/ros/noetic/share/dynamic_reconfigure/cmake
+//Value Computed by CMake
+demo_pkg_BINARY_DIR:STATIC=/home/malcom/ros-jenkins-pipeline/ros_ws/build/demo_pkg
 
-//The directory containing a CMake configuration file for gazebo_msgs.
-gazebo_msgs_DIR:PATH=/opt/ros/noetic/share/gazebo_msgs/cmake
-
-//The directory containing a CMake configuration file for gazebo_plugins.
-gazebo_plugins_DIR:PATH=/opt/ros/noetic/share/gazebo_plugins/cmake
-
-//The directory containing a CMake configuration file for gazebo_ros.
-gazebo_ros_DIR:PATH=/opt/ros/noetic/share/gazebo_ros/cmake
-
-//The directory containing a CMake configuration file for gencpp.
-gencpp_DIR:PATH=/opt/ros/noetic/share/gencpp/cmake
-
-//The directory containing a CMake configuration file for geneus.
-geneus_DIR:PATH=/opt/ros/noetic/share/geneus/cmake
-
-//The directory containing a CMake configuration file for genlisp.
-genlisp_DIR:PATH=/opt/ros/noetic/share/genlisp/cmake
-
-//The directory containing a CMake configuration file for genmsg.
-genmsg_DIR:PATH=/opt/ros/noetic/share/genmsg/cmake
-
-//The directory containing a CMake configuration file for gennodejs.
-gennodejs_DIR:PATH=/opt/ros/noetic/share/gennodejs/cmake
-
-//The directory containing a CMake configuration file for genpy.
-genpy_DIR:PATH=/opt/ros/noetic/share/genpy/cmake
+//Value Computed by CMake
+demo_pkg_SOURCE_DIR:STATIC=/home/malcom/ros-jenkins-pipeline/ros_ws/src/demo_pkg
 
 //The directory containing a CMake configuration file for geometry_msgs.
 geometry_msgs_DIR:PATH=/opt/ros/noetic/share/geometry_msgs/cmake
@@ -500,41 +449,14 @@ gtest_hide_internal_symbols:BOOL=OFF
 //Dependencies for the target
 gtest_main_LIB_DEPENDS:STATIC=general;gtest;
 
-//The directory containing a CMake configuration file for image_transport.
-image_transport_DIR:PATH=/opt/ros/noetic/share/image_transport/cmake
-
 //Path to a library.
-lib:FILEPATH=/opt/ros/noetic/lib/libmove_base.so
-
-//The directory containing a CMake configuration file for message_filters.
-message_filters_DIR:PATH=/opt/ros/noetic/share/message_filters/cmake
-
-//The directory containing a CMake configuration file for message_generation.
-message_generation_DIR:PATH=/opt/ros/noetic/share/message_generation/cmake
+lib:FILEPATH=/opt/ros/noetic/lib/libxmlrpcpp.so
 
 //The directory containing a CMake configuration file for message_runtime.
 message_runtime_DIR:PATH=/opt/ros/noetic/share/message_runtime/cmake
 
-//The directory containing a CMake configuration file for move_base.
-move_base_DIR:PATH=/opt/ros/noetic/share/move_base/cmake
-
-//The directory containing a CMake configuration file for move_base_msgs.
-move_base_msgs_DIR:PATH=/opt/ros/noetic/share/move_base_msgs/cmake
-
-//The directory containing a CMake configuration file for nav_msgs.
-nav_msgs_DIR:PATH=/opt/ros/noetic/share/nav_msgs/cmake
-
-//The directory containing a CMake configuration file for nodelet.
-nodelet_DIR:PATH=/opt/ros/noetic/share/nodelet/cmake
-
-//The directory containing a CMake configuration file for pluginlib.
-pluginlib_DIR:PATH=/opt/ros/noetic/share/pluginlib/cmake
-
 //The directory containing a CMake configuration file for rosconsole.
 rosconsole_DIR:PATH=/opt/ros/noetic/share/rosconsole/cmake
-
-//The directory containing a CMake configuration file for rosconsole_bridge.
-rosconsole_bridge_DIR:PATH=/opt/ros/noetic/share/rosconsole_bridge/cmake
 
 //The directory containing a CMake configuration file for roscpp.
 roscpp_DIR:PATH=/opt/ros/noetic/share/roscpp/cmake
@@ -545,59 +467,17 @@ roscpp_serialization_DIR:PATH=/opt/ros/noetic/share/roscpp_serialization/cmake
 //The directory containing a CMake configuration file for roscpp_traits.
 roscpp_traits_DIR:PATH=/opt/ros/noetic/share/roscpp_traits/cmake
 
-//The directory containing a CMake configuration file for rosgraph.
-rosgraph_DIR:PATH=/opt/ros/noetic/share/rosgraph/cmake
-
 //The directory containing a CMake configuration file for rosgraph_msgs.
 rosgraph_msgs_DIR:PATH=/opt/ros/noetic/share/rosgraph_msgs/cmake
 
-//The directory containing a CMake configuration file for roslib.
-roslib_DIR:PATH=/opt/ros/noetic/share/roslib/cmake
-
-//The directory containing a CMake configuration file for rospack.
-rospack_DIR:PATH=/opt/ros/noetic/share/rospack/cmake
-
-//The directory containing a CMake configuration file for rospy.
-rospy_DIR:PATH=/opt/ros/noetic/share/rospy/cmake
+//The directory containing a CMake configuration file for rostest.
+rostest_DIR:PATH=/opt/ros/noetic/share/rostest/cmake
 
 //The directory containing a CMake configuration file for rostime.
 rostime_DIR:PATH=/opt/ros/noetic/share/rostime/cmake
 
-//The directory containing a CMake configuration file for sensor_msgs.
-sensor_msgs_DIR:PATH=/opt/ros/noetic/share/sensor_msgs/cmake
-
-//The directory containing a CMake configuration file for smclib.
-smclib_DIR:PATH=/opt/ros/noetic/share/smclib/cmake
-
 //The directory containing a CMake configuration file for std_msgs.
 std_msgs_DIR:PATH=/opt/ros/noetic/share/std_msgs/cmake
-
-//The directory containing a CMake configuration file for std_srvs.
-std_srvs_DIR:PATH=/opt/ros/noetic/share/std_srvs/cmake
-
-//The directory containing a CMake configuration file for tf2.
-tf2_DIR:PATH=/opt/ros/noetic/share/tf2/cmake
-
-//The directory containing a CMake configuration file for tf2_msgs.
-tf2_msgs_DIR:PATH=/opt/ros/noetic/share/tf2_msgs/cmake
-
-//The directory containing a CMake configuration file for tf2_py.
-tf2_py_DIR:PATH=/opt/ros/noetic/share/tf2_py/cmake
-
-//The directory containing a CMake configuration file for tf2_ros.
-tf2_ros_DIR:PATH=/opt/ros/noetic/share/tf2_ros/cmake
-
-//The directory containing a CMake configuration file for tf.
-tf_DIR:PATH=/opt/ros/noetic/share/tf/cmake
-
-//The directory containing a CMake configuration file for trajectory_msgs.
-trajectory_msgs_DIR:PATH=/opt/ros/noetic/share/trajectory_msgs/cmake
-
-//The directory containing a CMake configuration file for urdf.
-urdf_DIR:PATH=/opt/ros/noetic/share/urdf/cmake
-
-//The directory containing a CMake configuration file for visualization_msgs.
-visualization_msgs_DIR:PATH=/opt/ros/noetic/share/visualization_msgs/cmake
 
 //The directory containing a CMake configuration file for xmlrpcpp.
 xmlrpcpp_DIR:PATH=/opt/ros/noetic/share/xmlrpcpp/cmake
@@ -698,7 +578,7 @@ CMAKE_HAVE_PTHREAD_CREATE:INTERNAL=1
 CMAKE_HAVE_PTHREAD_H:INTERNAL=1
 //Source directory with the top level CMakeLists.txt file for this
 // project
-CMAKE_HOME_DIRECTORY:INTERNAL=/home/malcom/ros-jenkins-pipeline/ros_ws/src/agv_sim
+CMAKE_HOME_DIRECTORY:INTERNAL=/home/malcom/ros-jenkins-pipeline/ros_ws/src/demo_pkg
 //ADVANCED property for variable: CMAKE_INSTALL_BINDIR
 CMAKE_INSTALL_BINDIR-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_INSTALL_DATADIR

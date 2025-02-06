@@ -1,3 +1,6 @@
 Symlinking /home/malcom/ros-jenkins-pipeline/ros_ws/devel/share/agv_sim/cmake/agv_simConfig.cmake
 Symlinking /home/malcom/ros-jenkins-pipeline/ros_ws/devel/share/agv_sim/cmake/agv_simConfig-version.cmake
+Symlinking /home/malcom/ros-jenkins-pipeline/ros_ws/devel/lib/agv_sim/arrow_teleop.py
+Symlinking /home/malcom/ros-jenkins-pipeline/ros_ws/devel/lib/agv_sim/cmake.lock
+Symlinking /home/malcom/ros-jenkins-pipeline/ros_ws/devel/lib/agv_sim/simulation_test.py
 Symlinking /home/malcom/ros-jenkins-pipeline/ros_ws/devel/lib/pkgconfig/agv_sim.pc

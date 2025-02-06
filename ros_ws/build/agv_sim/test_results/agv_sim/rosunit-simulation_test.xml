@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<testsuite errors="0" failures="0" name="unittest.suite.TestSuite" tests="1" time="5.162"><testcase classname="__main__.SimulationTest" name="test_robot_movement" time="5.1622" /><system-out>&lt;![CDATA[
-[INFO] [1738856253.628381, 3.612000]: Waiting for topics to be ready...
-[INFO] [1738856253.630326, 3.612000]: Odometry received: True, TF received: True
-
-]]&gt;</system-out><system-err>&lt;![CDATA[
-
-]]&gt;</system-err></testsuite>

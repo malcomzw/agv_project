@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<testsuite errors="0" failures="0" name="unittest.suite.TestSuite" tests="1" time="0.709"><testcase classname="rostest.runner.RosTest" name="testdemo_test" time="0.7091" /><system-out>&lt;![CDATA[
+[ROSTEST]setup[/home/malcom/ros-jenkins-pipeline/ros_ws/src/demo_pkg/test/demo_test.test] run_id[1e848900-e4a3-11ef-807b-8ffc7a752797] starting
+&amp;#x001B;[1mstarted roslaunch server http://ubuntu:32929/&amp;#x001B;[0m
+
+SUMMARY
+========
+
+PARAMETERS
+ * /rosdistro: noetic
+ * /rosversion: 1.17.0
+
+NODES
+
+[ROSTEST]setup[/home/malcom/ros-jenkins-pipeline/ros_ws/src/demo_pkg/test/demo_test.test] run_id[1e848900-e4a3-11ef-807b-8ffc7a752797] done
+[ROSTEST]Running test [demo_test]
+&amp;#x001B;[1mROS_MASTER_URI=http://ubuntu:34471/&amp;#x001B;[0m
+&amp;#x001B;[1msetting /run_id to 1e848900-e4a3-11ef-807b-8ffc7a752797&amp;#x001B;[0m
+[ROSTEST]running test demo_test
+&amp;#x001B;[1mprocess[demo_test-1]: started with pid [21227]&amp;#x001B;[0m
+&amp;#x001B;[1m[demo_test-1] process has finished cleanly
+log file: /home/malcom/.ros/log/1e848900-e4a3-11ef-807b-8ffc7a752797/demo_test-1*.log&amp;#x001B;[0m
+[ROSTEST]test [demo_test] finished
+[ROSTEST]test [demo_test] results are in [/home/malcom/ros-jenkins-pipeline/ros_ws/build/demo_pkg/test_results/demo_pkg/rosunit-demo_test.xml]
+[ROSTEST]test [demo_test] results summary: 0 errors, 0 failures, 1 tests
+[ROSTEST][ROSTEST] test [demo_test] done
+[ROSTEST]tearDown[/home/malcom/ros-jenkins-pipeline/ros_ws/src/demo_pkg/test/demo_test.test]
+shutting down processing monitor...
+... shutting down processing monitor complete
+[ROSTEST]rostest teardown /home/malcom/ros-jenkins-pipeline/ros_ws/src/demo_pkg/test/demo_test.test complete
+
+]]&gt;</system-out><system-err>&lt;![CDATA[
+
+]]&gt;</system-err></testsuite>

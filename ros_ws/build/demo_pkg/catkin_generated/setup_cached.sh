@@ -10,4 +10,4 @@
 export CMAKE_PREFIX_PATH="/home/malcom/ros-jenkins-pipeline/ros_ws/devel/.private/demo_pkg:$CMAKE_PREFIX_PATH"
 export PWD='/home/malcom/ros-jenkins-pipeline/ros_ws/build/demo_pkg'
 export ROSLISP_PACKAGE_DIRECTORIES="/home/malcom/ros-jenkins-pipeline/ros_ws/devel/.private/demo_pkg/share/common-lisp:$ROSLISP_PACKAGE_DIRECTORIES"
-export ROS_PACKAGE_PATH="/home/malcom/ros-jenkins-pipeline/ros_ws/src/agv_sim:$ROS_PACKAGE_PATH"
+export ROS_PACKAGE_PATH="/home/malcom/ros-jenkins-pipeline/ros_ws/src/demo_pkg:$ROS_PACKAGE_PATH"

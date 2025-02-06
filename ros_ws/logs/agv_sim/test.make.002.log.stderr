@@ -1,6 +1,0 @@
-[/home/malcom/ros-jenkins-pipeline/ros_ws/src/agv_sim/test/integration_test.test] is not a launch file name
-Cannot find results, writing failure results to '/home/malcom/ros-jenkins-pipeline/ros_ws/build/agv_sim/test_results/agv_sim/MISSING-rostest-test_integration_test.xml'
-[33m[ WARN] [1738856074.698431408]: The root link base_link has an inertia specified in the URDF, but KDL does not support a root link with an inertia.  As a workaround, you can add an extra dummy link to your URDF.[0m
-[33m[ WARN] [1738856076.841771625, 0.119000000]: DiffDrive(ns = /agv/): missing <rosDebugLevel> default is na[0m
-[33m[ WARN] [1738856076.842749849, 0.119000000]: DiffDrive(ns = /agv/): missing <odometrySource> default is 1[0m
-[33m[ WARN] [1738856076.842877003, 0.119000000]: GazeboRosDiffDrive Plugin (ns = ) missing <publishTf>, defaults to 1[0m

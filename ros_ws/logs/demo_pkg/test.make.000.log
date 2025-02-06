@@ -1,0 +1,17 @@
+[1m[30m-- run_tests.py: execute commands[0m[0m
+[1m[30m  /usr/bin/python3 /opt/ros/noetic/share/rostest/cmake/../../../bin/rostest --pkgdir=/home/malcom/ros-jenkins-pipeline/ros_ws/src/demo_pkg --package=demo_pkg --results-filename test_demo_test.xml --results-base-dir "/home/malcom/ros-jenkins-pipeline/ros_ws/build/demo_pkg/test_results" /home/malcom/ros-jenkins-pipeline/ros_ws/src/demo_pkg/test/demo_test.test[0m[0m
+... logging to /home/malcom/.ros/log/rostest-ubuntu-21207.log
+[ROSUNIT] Outputting test results to /home/malcom/ros-jenkins-pipeline/ros_ws/build/demo_pkg/test_results/demo_pkg/rostest-test_demo_test.xml
+[Testcase: testdemo_test] ... ok
+
+[ROSTEST]-----------------------------------------------------------------------
+
+[demo_pkg.rosunit-demo_test/test_dummy][passed]
+
+SUMMARY
+[32m * RESULT: SUCCESS[0m
+ * TESTS: 1
+ * ERRORS: 0
+ * FAILURES: 0
+
+rostest log file is in /home/malcom/.ros/log/rostest-ubuntu-21207.log

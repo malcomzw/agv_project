@@ -1,6 +1,0 @@
-Linked: (/home/malcom/ros-jenkins-pipeline/ros_ws/devel/.private/agv_sim/share/agv_sim/cmake/agv_simConfig.cmake, /home/malcom/ros-jenkins-pipeline/ros_ws/devel/share/agv_sim/cmake/agv_simConfig.cmake)
-Linked: (/home/malcom/ros-jenkins-pipeline/ros_ws/devel/.private/agv_sim/share/agv_sim/cmake/agv_simConfig-version.cmake, /home/malcom/ros-jenkins-pipeline/ros_ws/devel/share/agv_sim/cmake/agv_simConfig-version.cmake)
-Linked: (/home/malcom/ros-jenkins-pipeline/ros_ws/devel/.private/agv_sim/lib/agv_sim/arrow_teleop.py, /home/malcom/ros-jenkins-pipeline/ros_ws/devel/lib/agv_sim/arrow_teleop.py)
-Linked: (/home/malcom/ros-jenkins-pipeline/ros_ws/devel/.private/agv_sim/lib/agv_sim/cmake.lock, /home/malcom/ros-jenkins-pipeline/ros_ws/devel/lib/agv_sim/cmake.lock)
-Symlinking /home/malcom/ros-jenkins-pipeline/ros_ws/devel/lib/agv_sim/simulation_test.py
-Linked: (/home/malcom/ros-jenkins-pipeline/ros_ws/devel/.private/agv_sim/lib/pkgconfig/agv_sim.pc, /home/malcom/ros-jenkins-pipeline/ros_ws/devel/lib/pkgconfig/agv_sim.pc)

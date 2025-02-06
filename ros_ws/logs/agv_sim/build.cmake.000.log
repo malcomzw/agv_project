@@ -33,14 +33,8 @@ Not searching for unused variables given on the command line.
 [36m--[0m catkin 0.8.10
 [36m--[0m BUILD_SHARED_LIBS is on
 [36m--[0m Using these message generators: gencpp;geneus;genlisp;gennodejs;genpy
-[31m[1mCMake Error[0m at /opt/ros/noetic/share/catkin/cmake/catkin_package.cmake:305 (message):
-  catkin_package() include dir 'include' does not exist relative to
-  '/home/malcom/ros-jenkins-pipeline/ros_ws/src/agv_sim'
-[36mCall Stack (most recent call first):[0m
-  /opt/ros/noetic/share/catkin/cmake/catkin_package.cmake:102 (_catkin_package)
-  CMakeLists.txt:17 (catkin_package)
-
-
-[36m--[0m Configuring incomplete, errors occurred!
-See also "/home/malcom/ros-jenkins-pipeline/ros_ws/build/agv_sim/CMakeFiles/CMakeOutput.log".
-See also "/home/malcom/ros-jenkins-pipeline/ros_ws/build/agv_sim/CMakeFiles/CMakeError.log".
+[36m--[0m Installing devel-space wrapper /home/malcom/ros-jenkins-pipeline/ros_ws/src/agv_sim/src/arrow_teleop.py to /home/malcom/ros-jenkins-pipeline/ros_ws/devel/.private/agv_sim/lib/agv_sim
+[36m--[0m Installing devel-space wrapper /home/malcom/ros-jenkins-pipeline/ros_ws/src/agv_sim/test/simulation_test.py to /home/malcom/ros-jenkins-pipeline/ros_ws/devel/.private/agv_sim/lib/agv_sim
+[36m--[0m Configuring done
+[36m--[0m Generating done
+[36m--[0m Build files have been written to: /home/malcom/ros-jenkins-pipeline/ros_ws/build/agv_sim
