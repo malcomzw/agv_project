@@ -14,6 +14,22 @@ pipeline {
             }
         }
 
+        stage('Initialize Workspace') {
+            steps {
+                sh """
+                    docker run --rm \
+                        -v ${WORKSPACE}:/workspace \
+                        -w /workspace/ros_ws \
+                        ${DOCKER_IMAGE}:${DOCKER_TAG} \
+                        bash -c '
+                            source /opt/ros/noetic/setup.bash && \
+                            rm -rf build devel install && \
+                            catkin init && \
+                            catkin config --install'
+                """
+            }
+        }
+
         stage('Build ROS') {
             steps {
                 sh """
@@ -21,7 +37,9 @@ pipeline {
                         -v ${WORKSPACE}:/workspace \
                         -w /workspace/ros_ws \
                         ${DOCKER_IMAGE}:${DOCKER_TAG} \
-                        bash -c 'source /opt/ros/noetic/setup.bash && catkin build'
+                        bash -c '
+                            source /opt/ros/noetic/setup.bash && \
+                            catkin build --no-status'
                 """
             }
         }
@@ -33,7 +51,10 @@ pipeline {
                         -v ${WORKSPACE}:/workspace \
                         -w /workspace/ros_ws \
                         ${DOCKER_IMAGE}:${DOCKER_TAG} \
-                        bash -c 'source /opt/ros/noetic/setup.bash && source devel/setup.bash && catkin test demo_pkg --no-deps'
+                        bash -c '
+                            source /opt/ros/noetic/setup.bash && \
+                            source devel/setup.bash && \
+                            catkin test demo_pkg --no-deps'
                 """
             }
         }
