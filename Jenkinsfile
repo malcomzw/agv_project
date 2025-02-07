@@ -139,57 +139,57 @@ pipeline {
                             --env DISPLAY=:99 \
                             --env ROS_MASTER_URI=http://localhost:11311 \
                             --env ROS_HOSTNAME=localhost \
-                            ros-jenkins:80 \
+                            ros-jenkins:90 \
                             timeout ${SIMULATION_TIMEOUT} /bin/bash -c "
-                                set -e  # Exit immediately if a command exits with a non-zero status
+                                set -e
                                 
-                                source /opt/ros/noetic/setup.bash &&
-                                source devel/setup.bash &&
+                                source /opt/ros/noetic/setup.bash
+                                source devel/setup.bash
                                 
                                 # Setup virtual framebuffer
                                 Xvfb :99 & 
                                 export DISPLAY=:99
                                 
                                 # Set Gazebo paths
-                                export GAZEBO_RESOURCE_PATH=/workspace/ros_ws/src/agv_sim/worlds:$GAZEBO_RESOURCE_PATH &&
-                                export GAZEBO_MODEL_PATH=/workspace/ros_ws/src/agv_sim/models:$GAZEBO_MODEL_PATH &&
+                                export GAZEBO_RESOURCE_PATH=/workspace/ros_ws/src/agv_sim/worlds:$GAZEBO_RESOURCE_PATH
+                                export GAZEBO_MODEL_PATH=/workspace/ros_ws/src/agv_sim/models:$GAZEBO_MODEL_PATH
                                 
-                                echo '=== Preparing Simulation Environment ===' &&
+                                echo '=== Preparing Simulation Environment ==='
                                 roscore & 
-                                ROSCORE_PID=$! &&
-                                sleep 5 &&
+                                ROSCORE_PID=$!
+                                sleep 5
                                 
-                                echo '=== Launching AGV Simulation ===' &&
+                                echo '=== Launching AGV Simulation ==='
                                 roslaunch agv_sim simulation.launch gui:=false record:=true &
-                                SIMULATION_PID=$! &&
+                                SIMULATION_PID=$!
                                 
-                                echo '=== Waiting for Simulation Startup ===' &&
-                                sleep 30 &&  # Allow simulation to stabilize
+                                echo '=== Waiting for Simulation Startup ==='
+                                sleep 30
                                 
-                                echo '=== Running Simulation Tests ===' &&
-                                rostest agv_sim simulation_integration_test.test || true &&
+                                echo '=== Running Simulation Tests ==='
+                                rostest agv_sim simulation_integration_test.test || true
                                 
-                                echo '=== Generating Simulation Report ===' &&
-                                mkdir -p /workspace/ros_ws/simulation_results &&
+                                echo '=== Generating Simulation Report ==='
+                                mkdir -p /workspace/ros_ws/simulation_results
                                 
                                 # Capture rosbag data
                                 rosbag record -O /workspace/ros_ws/simulation_results/simulation_data.bag \
                                     /tf /tf_static /odom /cmd_vel /scan /rosout -d 60 &
-                                ROSBAG_PID=$! &&
+                                ROSBAG_PID=$!
                                 
-                                sleep 60 &&  # Record for 60 seconds
+                                sleep 60
                                 
                                 # Kill processes
-                                kill $ROSBAG_PID $SIMULATION_PID $ROSCORE_PID || true &&
+                                kill $ROSBAG_PID $SIMULATION_PID $ROSCORE_PID || true
                                 
                                 # Generate simulation performance metrics
-                                echo 'Simulation Performance Metrics:' > /workspace/ros_ws/simulation_results/performance_report.txt &&
-                                echo '--------------------------------' >> /workspace/ros_ws/simulation_results/performance_report.txt &&
-                                rostopic hz /odom >> /workspace/ros_ws/simulation_results/performance_report.txt 2>&1 &&
+                                echo 'Simulation Performance Metrics:' > /workspace/ros_ws/simulation_results/performance_report.txt
+                                echo '--------------------------------' >> /workspace/ros_ws/simulation_results/performance_report.txt
+                                rostopic hz /odom >> /workspace/ros_ws/simulation_results/performance_report.txt 2>&1
                                 
                                 # Generate simulation log summary
-                                grep -R "error|warning" /root/.ros/log/ > /workspace/ros_ws/simulation_results/simulation_log_summary.txt || true
-                            "'
+                                grep -R 'error|warning' /root/.ros/log/ > /workspace/ros_ws/simulation_results/simulation_log_summary.txt || true
+                            "
                         
                         # Copy simulation results back to Jenkins workspace
                         mkdir -p ros_ws/simulation_results
