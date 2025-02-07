@@ -90,14 +90,16 @@ pipeline {
                             source /opt/ros/noetic/setup.bash && \
                             source devel/setup.bash && \
                             catkin run_tests --no-deps && \
-                            catkin_test_results build/test_results --verbose > test_results.txt
+                            mkdir -p test_results && \
+                            catkin_test_results build/test_results --verbose > test_results/summary.txt && \
+                            find build/test_results -name "*.xml" -exec cp {} test_results/ \;
                         '
                 '''
             }
             post {
                 always {
-                    archiveArtifacts artifacts: 'ros_ws/test_results.txt', allowEmptyArchive: true
-                    junit testResults: 'ros_ws/build/test_results/**/*.xml', allowEmptyResults: true
+                    archiveArtifacts artifacts: 'ros_ws/test_results/**/*', allowEmptyArchive: true
+                    junit testResults: 'ros_ws/test_results/*.xml', allowEmptyResults: true
                 }
                 success {
                     echo 'All tests passed!'
