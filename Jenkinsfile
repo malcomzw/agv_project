@@ -126,33 +126,27 @@ pipeline {
         }
 
         stage('Gazebo Simulation Deployment') {
-            environment {
-                SIMULATION_TIMEOUT = 300  // 5 minutes max simulation time
-            }
-            steps {
+            withEnv(["DISPLAY=:99"]) {
                 script {
                     catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
                         sh '''
-                        docker run --rm \
-                            -v /var/lib/jenkins/workspace/ros_pipeline1:/workspace \
-                            -w /workspace/ros_ws \
+                            docker run --rm -v /var/lib/jenkins/workspace/ros_pipeline1:/workspace -w /workspace/ros_ws \
                             --env DISPLAY=:99 \
                             --env ROS_MASTER_URI=http://localhost:11311 \
                             --env ROS_HOSTNAME=localhost \
-                            ros-jenkins:90 \
-                            timeout ${SIMULATION_TIMEOUT} /bin/bash -c "
+                            ros-jenkins:91 timeout 300 /bin/bash -c "
                                 set -e
                                 
                                 source /opt/ros/noetic/setup.bash
                                 source devel/setup.bash
                                 
                                 # Setup virtual framebuffer
-                                Xvfb :99 & 
+                                Xvfb :99 -screen 0 1024x768x16 & 
                                 export DISPLAY=:99
                                 
                                 # Set Gazebo paths
-                                export GAZEBO_RESOURCE_PATH=/workspace/ros_ws/src/agv_sim/worlds:$GAZEBO_RESOURCE_PATH
-                                export GAZEBO_MODEL_PATH=/workspace/ros_ws/src/agv_sim/models:$GAZEBO_MODEL_PATH
+                                export GAZEBO_RESOURCE_PATH=/workspace/ros_ws/src/agv_sim/worlds
+                                export GAZEBO_MODEL_PATH=/workspace/ros_ws/src/agv_sim/models
                                 
                                 echo '=== Preparing Simulation Environment ==='
                                 roscore & 
@@ -167,14 +161,14 @@ pipeline {
                                 sleep 30
                                 
                                 echo '=== Running Simulation Tests ==='
-                                rostest agv_sim simulation_integration_test.test || true
+                                rostest agv_sim simulation_test.test || true
                                 
                                 echo '=== Generating Simulation Report ==='
                                 mkdir -p /workspace/ros_ws/simulation_results
                                 
                                 # Capture rosbag data
                                 rosbag record -O /workspace/ros_ws/simulation_results/simulation_data.bag \
-                                    /tf /tf_static /odom /cmd_vel /scan /rosout -d 60 &
+                                    /tf /tf_static /odom /cmd_vel /scan /rosout -D 60 &
                                 ROSBAG_PID=$!
                                 
                                 sleep 60
@@ -190,58 +184,13 @@ pipeline {
                                 # Generate simulation log summary
                                 grep -R 'error|warning' /root/.ros/log/ > /workspace/ros_ws/simulation_results/simulation_log_summary.txt || true
                             "
-                        
-                        # Copy simulation results back to Jenkins workspace
-                        mkdir -p ros_ws/simulation_results
-                        docker cp $(docker ps -lq):/workspace/ros_ws/simulation_results/. ros_ws/simulation_results/ || true
                         '''
                     }
                 }
-            }
-            post {
-                always {
-                    script {
-                        // Check if simulation results exist
-                        def simulationResultsExist = fileExists 'ros_ws/simulation_results'
-                        
-                        if (simulationResultsExist) {
-                            // Archive artifacts
-                            archiveArtifacts artifacts: 'ros_ws/simulation_results/**/*', allowEmptyArchive: true
-                            
-                            // Generate summary report
-                            sh '''
-                            echo "=== Gazebo Simulation Report ===" > ros_ws/simulation_results/simulation_summary.txt
-                            echo "Date: $(date)" >> ros_ws/simulation_results/simulation_summary.txt
-                            echo "Build Number: ${BUILD_NUMBER}" >> ros_ws/simulation_results/simulation_summary.txt
-                            echo "" >> ros_ws/simulation_results/simulation_summary.txt
-                            
-                            echo "Performance Metrics:" >> ros_ws/simulation_results/simulation_summary.txt
-                            cat ros_ws/simulation_results/performance_report.txt >> ros_ws/simulation_results/simulation_summary.txt
-                            
-                            echo "" >> ros_ws/simulation_results/simulation_summary.txt
-                            echo "Simulation Logs Summary:" >> ros_ws/simulation_results/simulation_summary.txt
-                            cat ros_ws/simulation_results/simulation_log_summary.txt >> ros_ws/simulation_results/simulation_summary.txt
-                            '''
-                            
-                            // Publish HTML report
-                            publishHTML(
-                                target: [
-                                    allowMissing: true,
-                                    alwaysLinkToLastBuild: true,
-                                    keepAll: true,
-                                    reportDir: 'ros_ws/simulation_results',
-                                    reportFiles: 'simulation_summary.txt',
-                                    reportName: 'Gazebo Simulation Report'
-                                ]
-                            )
-                        } else {
-                            echo "No simulation results found. Simulation may have failed."
-                        }
+                script {
+                    if (fileExists('ros_ws/simulation_results')) {
+                        archiveArtifacts artifacts: 'ros_ws/simulation_results/**/*', fingerprint: true
                     }
-                }
-                
-                failure {
-                    echo "Gazebo Simulation Deployment Stage Failed"
                 }
             }
         }

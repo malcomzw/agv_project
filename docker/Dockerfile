@@ -18,6 +18,8 @@ RUN apt-get update && apt-get install -y \
     python3-coverage \
     python3-osrf-pycommon \
     python3-rosdep \
+    xvfb \
+    python3-pygame \
     && rm -rf /var/lib/apt/lists/*
 
 # Initialize rosdep (handle case where it's already initialized)
