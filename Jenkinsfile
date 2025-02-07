@@ -135,30 +135,39 @@ pipeline {
                             --env LIBGL_ALWAYS_SOFTWARE=1 \
                             --env ROS_MASTER_URI=http://localhost:11311 \
                             --env ROS_HOSTNAME=localhost \
-                            ros-jenkins:91 timeout 30 /bin/bash -c "
+                            ros-jenkins:91 timeout 180 /bin/bash -c '
                                 set -e
 
-                                echo '=== Initializing rosdep ==='
+                                echo "=== Initializing rosdep ==="
                                 if [ ! -f /etc/ros/rosdep/sources.list.d/20-default.list ]; then
                                     rosdep init
                                 fi
                                 rosdep update
 
-                                echo '=== Installing Required Packages ==='
+                                echo "=== Installing Required Packages ==="
                                 apt-get update
                                 apt-get install -y xvfb python3-pygame mesa-utils
 
-                                echo '=== Resolving ROS Dependencies ==='
+                                echo "=== Resolving ROS Dependencies ==="
                                 rosdep install --from-paths src --ignore-src -r -y
 
-                                echo '=== Checking ROS Environment ==='
+                                echo "=== Checking ROS Environment ==="
+                                source /opt/ros/noetic/setup.bash
+                                source devel/setup.bash
                                 env | grep ROS
 
-                                source /opt/ros/noetic/setup.bash
+                                echo "=== Starting Virtual Display ==="
+                                Xvfb :99 -screen 0 1024x768x16 &
 
-                                echo '=== Starting Gazebo Simulation ==='
+                                echo "=== Checking for simulation.launch ==="
+                                if [ ! -f src/agv_sim/launch/simulation.launch ]; then
+                                    echo "ERROR: simulation.launch file not found!"
+                                    exit 1
+                                fi
+
+                                echo "=== Starting Gazebo Simulation ==="
                                 roslaunch agv_sim simulation.launch use_rviz:=false gui:=false record:=true --wait
-                            "
+                            '
                         '''
                     }
                 }
