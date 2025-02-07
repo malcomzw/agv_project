@@ -78,6 +78,35 @@ pipeline {
                 }
             }
         }
+
+        stage('Run Tests') {
+            steps {
+                sh '''
+                    docker run --rm \
+                        -v ${WORKSPACE}:/workspace \
+                        -w /workspace/ros_ws \
+                        ros-jenkins:${BUILD_ID} \
+                        /bin/bash -c '
+                            source /opt/ros/noetic/setup.bash && \
+                            source devel/setup.bash && \
+                            catkin run_tests --no-deps && \
+                            catkin_test_results build/test_results --verbose > test_results.txt
+                        '
+                '''
+            }
+            post {
+                always {
+                    archiveArtifacts artifacts: 'ros_ws/test_results.txt', allowEmptyArchive: true
+                    junit testResults: 'ros_ws/build/test_results/**/*.xml', allowEmptyResults: true
+                }
+                success {
+                    echo 'All tests passed!'
+                }
+                failure {
+                    echo 'Some tests failed!'
+                }
+            }
+        }
     }
 
     post {
