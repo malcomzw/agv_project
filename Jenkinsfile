@@ -43,6 +43,28 @@ pipeline {
                 '''
             }
         }
+
+        stage('Build ROS Package') {
+            steps {
+                sh '''
+                    source /opt/ros/noetic/setup.bash
+                    cd ros_ws
+                    catkin init
+                    catkin build --summarize \
+                        --no-status \
+                        --force-color \
+                        --cmake-args -DCMAKE_BUILD_TYPE=Release
+                '''
+            }
+            post {
+                success {
+                    echo 'ROS package built successfully!'
+                }
+                failure {
+                    echo 'Failed to build ROS package'
+                }
+            }
+        }
     }
 
     post {
