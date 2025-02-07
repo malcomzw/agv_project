@@ -127,18 +127,19 @@ pipeline {
                 }
             }
         }
+    }
 
-        post {
-            success {
-                echo "Build succeeded! Commit: ${env.GIT_COMMIT_SHORT}"
-            }
-            failure {
-                echo "Build failed! Commit: ${env.GIT_COMMIT_SHORT}"
-            }
-            always {
-                echo 'Pipeline completed.'
-                cleanWs()
-            }
+    post {
+        success {
+            echo "Build succeeded! Commit: ${env.GIT_COMMIT_SHORT}"
+        }
+        failure {
+            echo "Build failed! Commit: ${env.GIT_COMMIT_SHORT}"
+        }
+        always {
+            echo 'Pipeline completed.'
+            junit 'ros_ws/test_results/**/*.xml'
+            cleanWs()
         }
     }
 }
