@@ -158,20 +158,33 @@ pipeline {
 
                                 echo '=== Starting Virtual Display ==='
                                 Xvfb :99 -screen 0 1024x768x16 &
+                                export DISPLAY=:99
 
                                 echo '=== Setting Gazebo Environment Variables ==='
                                 export GAZEBO_MODEL_PATH=/workspace/ros_ws/src/agv_sim/models
-                                export GAZEBO_RESOURCE_PATH=/workspace/ros_ws/src/agv_sim/resources
+                                export GAZEBO_RESOURCE_PATH=/usr/share/gazebo-11:${GAZEBO_RESOURCE_PATH}
                                 export GAZEBO_PLUGIN_PATH=/workspace/ros_ws/src/agv_sim/plugins
+                                source /usr/share/gazebo/setup.sh
+
+                                echo '=== Debug: Checking if simulation.launch exists ==='
+                                ls -la src/agv_sim/launch/
 
                                 echo '=== Checking for simulation.launch ==='
                                 if [ ! -f src/agv_sim/launch/simulation.launch ]; then
                                     echo 'ERROR: simulation.launch file not found!'
+                                    echo 'Available files in launch directory:'
+                                    ls -la src/agv_sim/launch/
                                     exit 1
                                 fi
 
+                                echo '=== Debugging Gazebo Paths ==='
+                                echo 'GAZEBO_MODEL_PATH=' $GAZEBO_MODEL_PATH
+                                echo 'GAZEBO_RESOURCE_PATH=' $GAZEBO_RESOURCE_PATH
+                                echo 'GAZEBO_PLUGIN_PATH=' $GAZEBO_PLUGIN_PATH
+                                ls -la /usr/share/gazebo-11/worlds/
+
                                 echo '=== Verifying Gazebo Server Startup ==='
-                                gzserver --verbose &
+                                gzserver --verbose /usr/share/gazebo-11/worlds/empty.world &
                                 GZSERVER_PID=$!
                                 sleep 10
 
