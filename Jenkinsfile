@@ -1,64 +1,73 @@
 pipeline {
     agent any
-    
-    environment {
-        DOCKER_IMAGE_TAG = "ros-jenkins:93"
+
+    options {
+        timestamps()
+        timeout(time: 5, unit: 'MINUTES')
+        skipDefaultCheckout()
+        disableConcurrentBuilds()
     }
-    
+
+    environment {
+        GIT_COMMIT_SHORT = ''
+    }
+
     stages {
         stage('Cleanup') {
             steps {
                 cleanWs()
             }
         }
-        
+
         stage('Checkout') {
             steps {
                 checkout scm
                 script {
-                    sh 'git rev-parse --short HEAD'
-                    sh 'echo Build from commit: $(git rev-parse --short HEAD)'
-                    sh 'echo On branch: $(git rev-parse --abbrev-ref HEAD)'
-                    sh 'git show -s --format=%B HEAD'
+                    env.GIT_COMMIT_SHORT = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
+                    sh '''
+                        echo "Build from commit: ${GIT_COMMIT_SHORT}"
+                        echo "On branch: $(git rev-parse --abbrev-ref HEAD)"
+                        git show -s --format=%B HEAD
+                    '''
                 }
             }
         }
-        
+
         stage('Workspace Info') {
             steps {
-                sh 'echo Workspace contents:'
-                sh 'ls -la'
-                sh 'echo'
-                sh 'echo Disk space:'
-                sh 'df -h .'
+                sh '''
+                    echo "Workspace contents:"
+                    ls -la
+                    echo "\nDisk space:"
+                    df -h .
+                '''
             }
         }
-        
+
         stage('Build Docker Image') {
             steps {
-                sh "docker build -t ${env.DOCKER_IMAGE_TAG} -f docker/Dockerfile ."
+                sh 'docker build -t ros-jenkins:${BUILD_ID} -f docker/Dockerfile .'
             }
         }
-        
+
         stage('Build ROS Package') {
             steps {
-                sh """
-                docker run --rm \
-                    -v /var/lib/jenkins/workspace/ros_pipeline1:/workspace \
-                    -w /workspace/ros_ws \
-                    ${env.DOCKER_IMAGE_TAG} \
-                    /bin/bash -c '
-                        source /opt/ros/noetic/setup.bash && \
-                        rm -rf .catkin_tools build devel logs && \
-                        catkin init && \
-                        catkin clean -y && \
-                        catkin build \
-                            --summarize \
-                            --no-status \
-                            --force-color \
-                            --cmake-args -DCMAKE_BUILD_TYPE=Release
-                    '
-                """
+                sh '''
+                    docker run --rm \
+                        -v ${WORKSPACE}:/workspace \
+                        -w /workspace/ros_ws \
+                        ros-jenkins:${BUILD_ID} \
+                        /bin/bash -c '
+                            source /opt/ros/noetic/setup.bash && \
+                            rm -rf .catkin_tools build devel logs && \
+                            catkin init && \
+                            catkin clean -y && \
+                            catkin build --summarize \
+                                --no-status \
+                                --force-color \
+                                --cmake-args -DCMAKE_BUILD_TYPE=Release
+                        '
+                '''
             }
             post {
                 success {
@@ -72,17 +81,18 @@ pipeline {
 
         stage('Run Tests') {
             steps {
-                sh """
-                docker run --rm \
-                    -v /var/lib/jenkins/workspace/ros_pipeline1:/workspace \
-                    -w /workspace/ros_ws \
-                    ${env.DOCKER_IMAGE_TAG} \
-                    /bin/bash -c '
-                        source /opt/ros/noetic/setup.bash && \
-                        source devel/setup.bash && \
-                        catkin_test_results build/test_results
-                    '
-                """
+                script {
+                    sh '''
+                    docker run --rm -v /var/lib/jenkins/workspace/ros_pipeline1:/workspace -w /workspace/ros_ws ros-jenkins:80 /bin/bash -c "
+                        source /opt/ros/noetic/setup.bash &&
+                        source devel/setup.bash &&
+                        mkdir -p build/test_results test_results &&
+                        catkin run_tests --no-deps &&
+                        catkin_test_results build/test_results --verbose > test_results/summary.txt &&
+                        find build -type d -name test_results -exec cp -r {} /workspace/ros_ws/test_results/ \\; || true &&
+                        find build -name '*.xml' -exec cp {} /workspace/ros_ws/test_results/ \\; || true"
+                    '''
+                }
             }
             post {
                 always {
@@ -119,15 +129,12 @@ pipeline {
             steps {
                 script {
                     catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
-                        sh """
-                        docker run --rm \
-                            -v /var/lib/jenkins/workspace/ros_pipeline1:/workspace \
-                            -w /workspace/ros_ws \
+                        sh '''
+                            docker run --rm -v /var/lib/jenkins/workspace/ros_pipeline1:/workspace -w /workspace/ros_ws \
                             --env DISPLAY=:99 \
                             --env ROS_MASTER_URI=http://localhost:11311 \
                             --env ROS_HOSTNAME=localhost \
-                            ${env.DOCKER_IMAGE_TAG} \
-                            timeout 300 /bin/bash -c "
+                            ros-jenkins:91 timeout 300 /bin/bash -c "
                                 set -e
                                 
                                 source /opt/ros/noetic/setup.bash
@@ -177,7 +184,7 @@ pipeline {
                                 # Generate simulation log summary
                                 grep -R 'error|warning' /root/.ros/log/ > /workspace/ros_ws/simulation_results/simulation_log_summary.txt || true
                             "
-                        """
+                        '''
                     }
                 }
                 script {
@@ -188,7 +195,7 @@ pipeline {
             }
         }
     }
-    
+
     post {
         success {
             echo "Build succeeded! Commit: ${env.GIT_COMMIT_SHORT}"
