@@ -16,8 +16,12 @@ RUN apt-get update && apt-get install -y \
     ros-noetic-gazebo-plugins \
     python3-pytest \
     python3-coverage \
-    catkin \
+    python3-osrf-pycommon \
+    python3-rosdep \
     && rm -rf /var/lib/apt/lists/*
+
+# Initialize rosdep
+RUN rosdep init && rosdep update
 
 # Create workspace directory
 WORKDIR /workspace

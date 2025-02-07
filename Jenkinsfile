@@ -44,16 +44,28 @@ pipeline {
             }
         }
 
+        stage('Build Docker Image') {
+            steps {
+                sh 'docker build -t ros-jenkins:${BUILD_ID} -f docker/Dockerfile .'
+            }
+        }
+
         stage('Build ROS Package') {
             steps {
                 sh '''
-                    source /opt/ros/noetic/setup.bash
-                    cd ros_ws
-                    catkin init
-                    catkin build --summarize \
-                        --no-status \
-                        --force-color \
-                        --cmake-args -DCMAKE_BUILD_TYPE=Release
+                    docker run --rm \
+                        -v ${WORKSPACE}:/workspace \
+                        -w /workspace \
+                        ros-jenkins:${BUILD_ID} \
+                        /bin/bash -c '
+                            source /opt/ros/noetic/setup.bash && \
+                            cd ros_ws && \
+                            catkin init && \
+                            catkin build --summarize \
+                                --no-status \
+                                --force-color \
+                                --cmake-args -DCMAKE_BUILD_TYPE=Release
+                        '
                 '''
             }
             post {
