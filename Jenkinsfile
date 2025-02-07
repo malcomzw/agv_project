@@ -137,9 +137,16 @@ pipeline {
                             ros-jenkins:91 timeout 30 /bin/bash -c "
                                 set -e
                                 
+                                echo '=== Initializing rosdep ==='
+                                rosdep init
+                                rosdep update
+                                
                                 echo '=== Installing Required Packages ==='
                                 apt-get update
                                 apt-get install -y xvfb python3-pygame
+                                
+                                echo '=== Resolving ROS Dependencies ==='
+                                rosdep install --from-paths src --ignore-src -r -y
                                 
                                 echo '=== Checking ROS Environment ==='
                                 env | grep ROS
