@@ -183,6 +183,7 @@ pipeline {
 
                                 if ! kill -0 $GZSERVER_PID 2>/dev/null; then
                                     echo 'ERROR: Gazebo server failed to start!'
+                                    echo '=== Gazebo Server Log Contents ==='
                                     cat /workspace/gzserver.log
                                     exit 1
                                 fi
