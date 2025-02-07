@@ -19,16 +19,8 @@
   </node>
 
   <!-- Spawn the robot -->
-  <node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model" 
-        args="-urdf -param robot_description -model agv -x 0 -y 0 -z 0.1"/>
+  <node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model" args="-urdf -param robot_description -model agv -x 0 -y 0 -z 0.1"/>
   
   <!-- Launch the test node -->
-  <test 
-    test-name="simulation_test" 
-    pkg="agv_sim" 
-    type="simulation_test.py" 
-    time-limit="60.0"
-    retry="2">
-    <param name="output" value="screen"/>
-  </test>
+  <test test-name="simulation_test" pkg="agv_sim" type="simulation_test.py" time-limit="60.0"/>
 </launch>
