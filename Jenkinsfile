@@ -135,7 +135,7 @@ pipeline {
                             --env LIBGL_ALWAYS_SOFTWARE=1 \
                             --env ROS_MASTER_URI=http://localhost:11311 \
                             --env ROS_HOSTNAME=localhost \
-                            ros-jenkins:91 timeout 180 /bin/bash -c "
+                            ros-jenkins:91 timeout 300 /bin/bash -c "
                                 set -e
                                 
                                 echo '=== Initializing rosdep ==='
@@ -149,7 +149,7 @@ pipeline {
                                 apt-get install -y xvfb python3-pygame mesa-utils
 
                                 echo '=== Resolving ROS Dependencies ==='
-                                rosdep install --from-paths src --ignore-src -r -y
+                                rosdep install --from-paths src --ignore-src -r -y --os=ubuntu:focal
 
                                 echo '=== Checking ROS Environment ==='
                                 source /opt/ros/noetic/setup.bash
@@ -159,14 +159,29 @@ pipeline {
                                 echo '=== Starting Virtual Display ==='
                                 Xvfb :99 -screen 0 1024x768x16 &
 
+                                echo '=== Setting Gazebo Environment Variables ==='
+                                export GAZEBO_MODEL_PATH=/workspace/ros_ws/src/agv_sim/models
+                                export GAZEBO_RESOURCE_PATH=/workspace/ros_ws/src/agv_sim/resources
+                                export GAZEBO_PLUGIN_PATH=/workspace/ros_ws/src/agv_sim/plugins
+
                                 echo '=== Checking for simulation.launch ==='
                                 if [ ! -f src/agv_sim/launch/simulation.launch ]; then
                                     echo 'ERROR: simulation.launch file not found!'
                                     exit 1
                                 fi
 
+                                echo '=== Verifying Gazebo Server Startup ==='
+                                gzserver --verbose &
+                                GZSERVER_PID=$!
+                                sleep 10
+
+                                if ! kill -0 $GZSERVER_PID 2>/dev/null; then
+                                    echo 'ERROR: Gazebo server failed to start!'
+                                    exit 1
+                                fi
+
                                 echo '=== Starting Gazebo Simulation ==='
-                                roslaunch agv_sim simulation.launch use_rviz:=false gui:=false record:=true --wait
+                                roslaunch agv_sim simulation.launch use_rviz:=false gui:=false record:=true --screen --wait
                             "
                         '''
                     }
