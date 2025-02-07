@@ -8,6 +8,14 @@ RUN apt-get update && apt-get install -y \
     ros-noetic-move-base \
     python3-pip \
     python3-setuptools \
+    ros-noetic-roslint \
+    ros-noetic-rosdoc-lite \
+    ros-noetic-catkin-lint \
+    ros-noetic-gazebo-ros \
+    ros-noetic-gazebo-ros-control \
+    ros-noetic-gazebo-plugins \
+    python3-pytest \
+    python3-coverage \
     && rm -rf /var/lib/apt/lists/*
 
 # Create workspace directory
@@ -17,6 +25,14 @@ WORKDIR /workspace
 SHELL ["/bin/bash", "-c"]
 RUN echo 'source /opt/ros/noetic/setup.bash' >> ~/.bashrc && \
     echo 'source /opt/ros/noetic/setup.bash' >> /etc/bash.bashrc
+
+# Install additional Python packages
+RUN pip3 install \
+    rospkg \
+    catkin_pkg \
+    empy \
+    defusedxml \
+    nose
 
 # Default command
 CMD ["/bin/bash"]
