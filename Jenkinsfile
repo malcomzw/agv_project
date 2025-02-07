@@ -81,24 +81,17 @@ pipeline {
 
         stage('Run Tests') {
             steps {
-                sh '''
-                    docker run --rm \
-                        -v ${WORKSPACE}:/workspace \
-                        -w /workspace/ros_ws \
-                        ros-jenkins:${BUILD_ID} \
-                        /bin/bash -c '
-                            source /opt/ros/noetic/setup.bash && \
-                            source devel/setup.bash && \
-                            mkdir -p build/test_results && \
-                            mkdir -p /workspace/ros_ws/test_results && \
-                            catkin run_tests --no-deps && \
-                            catkin_test_results build/test_results --verbose > /workspace/ros_ws/test_results/summary.txt && \
-                            find build -type f -name "*.xml" -exec cp -v {} /workspace/ros_ws/test_results/ \; || true && \
-                            cp -r build/*/test_results/*.xml /workspace/ros_ws/test_results/ 2>/dev/null || true && \
-                            echo "=== DEBUG: Test Results in Container ===" && \
-                            ls -la /workspace/ros_ws/test_results/
-                        '
-                '''
+                script {
+                    sh '''
+                    docker run --rm -v /var/lib/jenkins/workspace/ros_pipeline1:/workspace -w /workspace/ros_ws ros-jenkins:80 /bin/bash -c "
+                        source /opt/ros/noetic/setup.bash &&
+                        source devel/setup.bash &&
+                        mkdir -p build/test_results test_results &&
+                        catkin run_tests --no-deps &&
+                        catkin_test_results build/test_results --verbose > test_results/summary.txt &&
+                        find build/test_results -name "*.xml" -exec cp {} test_results/ \\; || true"
+                    '''
+                }
             }
             post {
                 always {
