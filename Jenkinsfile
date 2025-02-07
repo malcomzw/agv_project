@@ -13,6 +13,16 @@ pipeline {
         buildDiscarder(logRotator(numToKeepStr: '10'))
     }
 
+    properties([
+        pipelineTriggers([gitlab(triggerOnPush: true, triggerOnMergeRequest: true)]),
+        dashboardColumns([
+            weatherColumn(),
+            testResultColumn(),
+            buildStatisticsColumn(),
+            htmlReportColumn('ROS Documentation')
+        ])
+    ])
+
     stages {
         stage('Prepare Environment') {
             steps {
@@ -58,7 +68,7 @@ pipeline {
                 }
             }
         }
-
+       
         stage('Integration Tests') {
             steps {
                 sh """
@@ -72,6 +82,34 @@ pipeline {
                             rostest demo_pkg demo_test.test
                         '
                 """
+            }
+        }
+
+        stage('Gazebo Integration Tests') {
+            steps {
+                sh '''
+                docker run --rm \
+                    -v ${WORKSPACE}:/workspace \
+                    -w /workspace \
+                    ros-jenkins:58 \
+                    /bin/bash -c '
+                        source /ros_ws/devel/setup.bash && \
+                        roslaunch demo_pkg gazebo_test.launch &
+                        sleep 30 && \
+                        rostest demo_pkg integration_test.test
+                    '
+                '''
+                sh '''
+                rosrun performance_metrics gazebo_monitor.py \
+                    --output ${WORKSPACE}/perf_metrics.json \
+                    --duration 300
+                '''
+            }
+            post {
+                always {
+                    junit '**/test_results/**/*.xml'
+                    archiveArtifacts artifacts: '**/gazebo_logs/*.log'
+                }
             }
         }
 
@@ -91,26 +129,31 @@ pipeline {
             }
         }
 
+        stage('Security Scan') {
+            steps {
+                sh 'trivy image --exit-code 1 --severity CRITICAL ros-jenkins:58'
+                sh 'bandit -r ros_ws/src/'
+            }
+        }
+
         stage('Documentation') {
             steps {
-                sh """
-                    docker run --rm \\
-                        -v ${WORKSPACE}:/workspace \\
-                        -w /workspace \\
-                        ${DOCKER_IMAGE}:${DOCKER_TAG} \\
-                        /bin/bash -c '
-                            cd ros_ws && \\
-                            rosdoc_lite src/demo_pkg
-                        '
-                """
-                publishHTML([
-                    allowMissing: true,
-                    alwaysLinkToLastBuild: false,
-                    keepAll: true,
-                    reportDir: 'ros_ws/doc/html',
-                    reportFiles: 'index.html',
-                    reportName: 'ROS Documentation'
-                ])
+                sh '''
+                source /ros_ws/devel/setup.bash
+                rosdoc_lite /ros_ws/src
+                '''
+            }
+            post {
+                success {
+                    publishHTML target: [
+                        allowMissing: false,
+                        alwaysLinkToLastBuild: false,
+                        keepAll: true,
+                        reportDir: 'ros_ws/doc/html',
+                        reportFiles: 'index.html',
+                        reportName: 'ROS Documentation'
+                    ]
+                }
             }
         }
 
@@ -133,6 +176,14 @@ pipeline {
 
     post {
         always {
+            archiveArtifacts artifacts: '**/build/**/*.log', allowEmptyArchive: true
+            script {
+                try {
+                    junit '**/test_results/**/*.xml'
+                } catch(e) {
+                    echo 'Test results archive failed: ' + e.toString()
+                }
+            }
             // Generate test reports
             script {
                 def testReport = """<!DOCTYPE html>
@@ -155,7 +206,9 @@ pipeline {
                         <ul>
                             <li>Unit Tests: ${currentBuild.result}</li>
                             <li>Integration Tests: ${currentBuild.result}</li>
+                            <li>Gazebo Integration Tests: ${currentBuild.result}</li>
                             <li>Code Analysis: Complete</li>
+                            <li>Security Scan: Complete</li>
                             <li>Documentation: Generated</li>
                             <li>Simulation: Complete</li>
                         </ul>

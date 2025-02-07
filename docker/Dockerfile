@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y \
     python3-setuptools \
     ros-noetic-roslint \
     ros-noetic-rosdoc-lite \
-    ros-noetic-catkin-lint \
+    python3-catkin-lint \
     ros-noetic-gazebo-ros \
     ros-noetic-gazebo-ros-control \
     ros-noetic-gazebo-plugins \
