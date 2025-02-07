@@ -16,6 +16,7 @@ RUN apt-get update && apt-get install -y \
     ros-noetic-gazebo-plugins \
     python3-pytest \
     python3-coverage \
+    catkin \
     && rm -rf /var/lib/apt/lists/*
 
 # Create workspace directory
