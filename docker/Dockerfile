@@ -20,8 +20,10 @@ RUN apt-get update && apt-get install -y \
     python3-rosdep \
     && rm -rf /var/lib/apt/lists/*
 
-# Initialize rosdep
-RUN rosdep init && rosdep update
+# Initialize rosdep (handle case where it's already initialized)
+RUN rm -rf /etc/ros/rosdep/sources.list.d/20-default.list && \
+    rosdep init && \
+    rosdep update
 
 # Create workspace directory
 WORKDIR /workspace
