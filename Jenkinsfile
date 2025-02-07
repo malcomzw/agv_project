@@ -137,7 +137,7 @@ pipeline {
                             --env ROS_HOSTNAME=localhost \
                             ros-jenkins:91 timeout 300 /bin/bash -c "
                                 set -e
-                                
+
                                 echo '=== Initializing rosdep ==='
                                 if [ ! -f /etc/ros/rosdep/sources.list.d/20-default.list ]; then
                                     rosdep init
@@ -146,7 +146,7 @@ pipeline {
 
                                 echo '=== Installing Required Packages ==='
                                 apt-get update
-                                apt-get install -y xvfb python3-pygame mesa-utils
+                                apt-get install -y xvfb python3-pygame mesa-utils gazebo11
 
                                 echo '=== Resolving ROS Dependencies ==='
                                 rosdep install --from-paths src --ignore-src -r -y --os=ubuntu:focal
@@ -161,21 +161,13 @@ pipeline {
                                 export DISPLAY=:99
 
                                 echo '=== Setting Gazebo Environment Variables ==='
-                                export GAZEBO_MODEL_PATH=/workspace/ros_ws/src/agv_sim/models
+                                export GAZEBO_MODEL_PATH=/workspace/ros_ws/src/agv_sim/models:${GAZEBO_MODEL_PATH}
                                 export GAZEBO_RESOURCE_PATH=/usr/share/gazebo-11:${GAZEBO_RESOURCE_PATH}
-                                export GAZEBO_PLUGIN_PATH=/workspace/ros_ws/src/agv_sim/plugins
+                                export GAZEBO_PLUGIN_PATH=/workspace/ros_ws/src/agv_sim/plugins:${GAZEBO_PLUGIN_PATH}
                                 source /usr/share/gazebo/setup.sh
 
-                                echo '=== Debug: Checking if simulation.launch exists ==='
-                                ls -la src/agv_sim/launch/
-
-                                echo '=== Checking for simulation.launch ==='
-                                if [ ! -f src/agv_sim/launch/simulation.launch ]; then
-                                    echo 'ERROR: simulation.launch file not found!'
-                                    echo 'Available files in launch directory:'
-                                    ls -la src/agv_sim/launch/
-                                    exit 1
-                                fi
+                                echo '=== Checking Gazebo Plugins ==='
+                                ls -la /usr/lib/x86_64-linux-gnu/gazebo-11/plugins/
 
                                 echo '=== Debugging Gazebo Paths ==='
                                 echo 'GAZEBO_MODEL_PATH=' $GAZEBO_MODEL_PATH
@@ -184,12 +176,14 @@ pipeline {
                                 ls -la /usr/share/gazebo-11/worlds/
 
                                 echo '=== Verifying Gazebo Server Startup ==='
-                                gzserver --verbose /usr/share/gazebo-11/worlds/empty.world &
+                                gzserver --verbose /usr/share/gazebo-11/worlds/empty.world 2>&1 | tee /workspace/gzserver.log
                                 GZSERVER_PID=$!
+
                                 sleep 10
 
                                 if ! kill -0 $GZSERVER_PID 2>/dev/null; then
                                     echo 'ERROR: Gazebo server failed to start!'
+                                    cat /workspace/gzserver.log
                                     exit 1
                                 fi
 
