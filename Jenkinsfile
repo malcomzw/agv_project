@@ -59,8 +59,9 @@ pipeline {
                         ros-jenkins:${BUILD_ID} \
                         /bin/bash -c '
                             source /opt/ros/noetic/setup.bash && \
-                            rm -rf .catkin_tools && \
+                            rm -rf .catkin_tools build devel logs && \
                             catkin init && \
+                            catkin clean -y && \
                             catkin build --summarize \
                                 --no-status \
                                 --force-color \
