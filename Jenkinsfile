@@ -137,27 +137,28 @@ pipeline {
                             --env ROS_HOSTNAME=localhost \
                             ros-jenkins:91 timeout 30 /bin/bash -c "
                                 set -e
-                                
+
                                 echo '=== Initializing rosdep ==='
                                 if [ ! -f /etc/ros/rosdep/sources.list.d/20-default.list ]; then
                                     rosdep init
                                 fi
                                 rosdep update
-                                
+
                                 echo '=== Installing Required Packages ==='
                                 apt-get update
                                 apt-get install -y xvfb python3-pygame mesa-utils
-                                
+
                                 echo '=== Resolving ROS Dependencies ==='
                                 rosdep install --from-paths src --ignore-src -r -y
-                                
+
                                 echo '=== Checking ROS Environment ==='
                                 env | grep ROS
-                                
+
                                 source /opt/ros/noetic/setup.bash
-                                
+
                                 echo '=== Starting Gazebo Simulation ==='
                                 roslaunch agv_sim simulation.launch use_rviz:=false gui:=false record:=true --wait
+                            "
                         '''
                     }
                 }
