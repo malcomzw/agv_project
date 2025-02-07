@@ -99,7 +99,7 @@ pipeline {
             post {
                 always {
                     archiveArtifacts artifacts: 'ros_ws/test_results/**/*', allowEmptyArchive: true
-                    junit testResults: 'ros_ws/test_results/*.xml', allowEmptyResults: true
+                    junit testResults: 'ros_ws/test_results/**/*.xml', allowEmptyResults: true
                 }
                 success {
                     echo 'All tests passed!'
