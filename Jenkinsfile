@@ -137,6 +137,10 @@ pipeline {
                             ros-jenkins:91 timeout 30 /bin/bash -c "
                                 set -e
                                 
+                                echo '=== Installing Required Packages ==='
+                                apt-get update
+                                apt-get install -y xvfb python3-pygame
+                                
                                 echo '=== Checking ROS Environment ==='
                                 env | grep ROS
                                 
@@ -145,6 +149,7 @@ pipeline {
 
                                 echo '=== Starting Virtual Display ==='
                                 Xvfb :99 -screen 0 1024x768x16 & 
+                                XVFB_PID=$!
                                 export DISPLAY=:99
                                 
                                 echo '=== Setting Gazebo Paths ==='
@@ -164,7 +169,7 @@ pipeline {
                                 SIMULATION_PID=$!
                                 sleep 3
                         
-                                if ! ps -p $SIMULATION_PID > /dev/null; then
+                                if ! kill -0 $SIMULATION_PID 2>/dev/null; then
                                     echo 'Simulation launch failed!'
                                     exit 1
                                 fi
@@ -173,9 +178,9 @@ pipeline {
                                 sleep 20
 
                                 echo '=== Stopping Simulation Processes ==='
-                                kill -TERM $SIMULATION_PID $ROSCORE_PID || true
+                                kill -TERM $SIMULATION_PID $ROSCORE_PID $XVFB_PID || true
                                 sleep 2
-                                kill -9 $SIMULATION_PID $ROSCORE_PID || true
+                                kill -9 $SIMULATION_PID $ROSCORE_PID $XVFB_PID || true
                         
                                 echo '=== Generating Performance Report ==='
                                 mkdir -p /workspace/ros_ws/simulation_results
