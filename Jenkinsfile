@@ -15,7 +15,23 @@ pipeline {
     stages {
         stage('Cleanup') {
             steps {
-                cleanWs()
+                script {
+                    try {
+                        cleanWs(
+                            cleanWhenNotBuilt: false,
+                            cleanWhenAborted: true,
+                            cleanWhenFailure: true,
+                            cleanWhenSuccess: true,
+                            cleanWhenUnstable: true,
+                            deleteDirs: true,
+                            disableDeferredWipeout: true,
+                            notFailBuild: true
+                        )
+                    } catch (Exception e) {
+                        echo "Warning: Workspace cleanup failed: ${e.message}"
+                        sh 'rm -rf $WORKSPACE/* || true'
+                    }
+                }
             }
         }
 
