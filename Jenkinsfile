@@ -173,7 +173,7 @@ pipeline {
                             rostopic hz /odom >> /workspace/ros_ws/simulation_results/performance_report.txt 2>&1 &&
                             
                             # Generate simulation log summary
-                            grep -R 'error\|warning' /root/.ros/log/ > /workspace/ros_ws/simulation_results/simulation_log_summary.txt
+                            grep -R "error\|warning" /root/.ros/log/ > /workspace/ros_ws/simulation_results/simulation_log_summary.txt
                         "'
                     
                     # Copy simulation results back to Jenkins workspace
