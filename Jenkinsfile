@@ -89,25 +89,22 @@ pipeline {
                         mkdir -p build/test_results test_results &&
                         catkin run_tests --no-deps &&
                         catkin_test_results build/test_results --verbose > test_results/summary.txt &&
-                        find build/test_results -name "*.xml" -exec cp {} test_results/ \\; || true"
+                        find build -type d -name test_results -exec cp -r {} /workspace/ros_ws/test_results/ \\; || true &&
+                        find build -name '*.xml' -exec cp {} /workspace/ros_ws/test_results/ \\; || true"
                     '''
                 }
             }
             post {
                 always {
                     script {
-                        // Additional debugging
                         sh '''
-                            echo "=== DEBUG: Build Test Results Directories ==="
-                            find ros_ws/build -type d -name "test_results"
-                            echo "=== DEBUG: XML Files Found ==="
-                            find ros_ws -name "*.xml"
-                            echo "=== DEBUG: Test Results Directory Contents ==="
-                            ls -la ros_ws/test_results/ || true
+                        echo "=== DEBUG: Test Results Directories ==="
+                        find /var/lib/jenkins/workspace/ros_pipeline1/ros_ws -type d -name test_results
+                        echo "=== DEBUG: XML Files Found ==="
+                        find /var/lib/jenkins/workspace/ros_pipeline1/ros_ws -name "*.xml"
                         '''
                     }
-                    archiveArtifacts artifacts: 'ros_ws/test_results/**/*', allowEmptyArchive: true
-                    junit testResults: 'ros_ws/test_results/**/*.xml', allowEmptyResults: true
+                    junit allowEmptyResults: true, testResults: 'ros_ws/test_results/**/*.xml'
                 }
                 success {
                     echo 'All tests passed!'
