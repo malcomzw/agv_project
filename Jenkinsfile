@@ -92,7 +92,7 @@ pipeline {
                             catkin run_tests --no-deps && \
                             mkdir -p test_results && \
                             catkin_test_results build/test_results --verbose > test_results/summary.txt && \
-                            find build/test_results -name "*.xml" -exec cp {} test_results/ \;
+                            find build/test_results -name "*.xml" -exec cp {} test_results/ \\;
                         '
                 '''
             }
