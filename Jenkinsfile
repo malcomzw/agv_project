@@ -42,22 +42,23 @@ pipeline {
         
         stage('Build ROS Package') {
             steps {
-                sh '''
-                    docker run --rm \
-                        -v ${WORKSPACE}:/workspace \
-                        -w /workspace/ros_ws \
-                        ros-jenkins:${BUILD_ID} \
-                        /bin/bash -c '
-                            source /opt/ros/noetic/setup.bash && \
-                            rm -rf .catkin_tools build devel logs && \
-                            catkin init && \
-                            catkin clean -y && \
-                            catkin build --summarize \
-                                --no-status \
-                                --force-color \
-                                --cmake-args -DCMAKE_BUILD_TYPE=Release
-                        '
-                '''
+                sh """
+                docker run --rm \
+                    -v /var/lib/jenkins/workspace/ros_pipeline1:/workspace \
+                    -w /workspace/ros_ws \
+                    ${env.DOCKER_IMAGE_TAG} \
+                    /bin/bash -c '
+                        source /opt/ros/noetic/setup.bash && \
+                        rm -rf .catkin_tools build devel logs && \
+                        catkin init && \
+                        catkin clean -y && \
+                        catkin build \
+                            --summarize \
+                            --no-status \
+                            --force-color \
+                            --cmake-args -DCMAKE_BUILD_TYPE=Release
+                    '
+                """
             }
             post {
                 success {
@@ -71,18 +72,17 @@ pipeline {
 
         stage('Run Tests') {
             steps {
-                script {
-                    sh '''
-                    docker run --rm -v /var/lib/jenkins/workspace/ros_pipeline1:/workspace -w /workspace/ros_ws ros-jenkins:80 /bin/bash -c "
-                        source /opt/ros/noetic/setup.bash &&
-                        source devel/setup.bash &&
-                        mkdir -p build/test_results test_results &&
-                        catkin run_tests --no-deps &&
-                        catkin_test_results build/test_results --verbose > test_results/summary.txt &&
-                        find build -type d -name test_results -exec cp -r {} /workspace/ros_ws/test_results/ \\; || true &&
-                        find build -name '*.xml' -exec cp {} /workspace/ros_ws/test_results/ \\; || true"
-                    '''
-                }
+                sh """
+                docker run --rm \
+                    -v /var/lib/jenkins/workspace/ros_pipeline1:/workspace \
+                    -w /workspace/ros_ws \
+                    ${env.DOCKER_IMAGE_TAG} \
+                    /bin/bash -c '
+                        source /opt/ros/noetic/setup.bash && \
+                        source devel/setup.bash && \
+                        catkin_test_results build/test_results
+                    '
+                """
             }
             post {
                 always {
@@ -119,12 +119,15 @@ pipeline {
             steps {
                 script {
                     catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
-                        sh '''
-                            docker run --rm -v /var/lib/jenkins/workspace/ros_pipeline1:/workspace -w /workspace/ros_ws \
+                        sh """
+                        docker run --rm \
+                            -v /var/lib/jenkins/workspace/ros_pipeline1:/workspace \
+                            -w /workspace/ros_ws \
                             --env DISPLAY=:99 \
                             --env ROS_MASTER_URI=http://localhost:11311 \
                             --env ROS_HOSTNAME=localhost \
-                            ros-jenkins:93 timeout 300 /bin/bash -c "
+                            ${env.DOCKER_IMAGE_TAG} \
+                            timeout 300 /bin/bash -c "
                                 set -e
                                 
                                 source /opt/ros/noetic/setup.bash
@@ -174,7 +177,7 @@ pipeline {
                                 # Generate simulation log summary
                                 grep -R 'error|warning' /root/.ros/log/ > /workspace/ros_ws/simulation_results/simulation_log_summary.txt || true
                             "
-                        '''
+                        """
                     }
                 }
                 script {
