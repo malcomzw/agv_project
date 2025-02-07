@@ -1,55 +1,45 @@
 pipeline {
     agent any
-
-    options {
-        timestamps()
-        timeout(time: 5, unit: 'MINUTES')
-        skipDefaultCheckout()
-        disableConcurrentBuilds()
-    }
-
+    
     environment {
-        GIT_COMMIT_SHORT = ''
+        DOCKER_IMAGE_TAG = "ros-jenkins:93"
     }
-
+    
     stages {
         stage('Cleanup') {
             steps {
                 cleanWs()
             }
         }
-
+        
         stage('Checkout') {
             steps {
                 checkout scm
                 script {
-                    env.GIT_COMMIT_SHORT = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
-                    sh '''
-                        echo "Build from commit: ${GIT_COMMIT_SHORT}"
-                        echo "On branch: $(git rev-parse --abbrev-ref HEAD)"
-                        git show -s --format=%B HEAD
-                    '''
+                    sh 'git rev-parse --short HEAD'
+                    sh 'echo Build from commit: $(git rev-parse --short HEAD)'
+                    sh 'echo On branch: $(git rev-parse --abbrev-ref HEAD)'
+                    sh 'git show -s --format=%B HEAD'
                 }
             }
         }
-
+        
         stage('Workspace Info') {
             steps {
-                sh '''
-                    echo "Workspace contents:"
-                    ls -la
-                    echo "\nDisk space:"
-                    df -h .
-                '''
+                sh 'echo Workspace contents:'
+                sh 'ls -la'
+                sh 'echo'
+                sh 'echo Disk space:'
+                sh 'df -h .'
             }
         }
-
+        
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t ros-jenkins:${BUILD_ID} -f docker/Dockerfile .'
+                sh "docker build -t ${env.DOCKER_IMAGE_TAG} -f docker/Dockerfile ."
             }
         }
-
+        
         stage('Build ROS Package') {
             steps {
                 sh '''
@@ -134,7 +124,7 @@ pipeline {
                             --env DISPLAY=:99 \
                             --env ROS_MASTER_URI=http://localhost:11311 \
                             --env ROS_HOSTNAME=localhost \
-                            ros-jenkins:91 timeout 300 /bin/bash -c "
+                            ros-jenkins:93 timeout 300 /bin/bash -c "
                                 set -e
                                 
                                 source /opt/ros/noetic/setup.bash
@@ -195,7 +185,7 @@ pipeline {
             }
         }
     }
-
+    
     post {
         success {
             echo "Build succeeded! Commit: ${env.GIT_COMMIT_SHORT}"
