@@ -55,11 +55,11 @@ pipeline {
                 sh '''
                     docker run --rm \
                         -v ${WORKSPACE}:/workspace \
-                        -w /workspace \
+                        -w /workspace/ros_ws \
                         ros-jenkins:${BUILD_ID} \
                         /bin/bash -c '
                             source /opt/ros/noetic/setup.bash && \
-                            cd ros_ws && \
+                            rm -rf .catkin_tools && \
                             catkin init && \
                             catkin build --summarize \
                                 --no-status \
