@@ -126,7 +126,7 @@ pipeline {
         }
 
         stage('Gazebo Simulation Deployment') {
-            withEnv(["DISPLAY=:99"]) {
+            steps {
                 script {
                     catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
                         sh '''
