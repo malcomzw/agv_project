@@ -138,7 +138,9 @@ pipeline {
                                 set -e
                                 
                                 echo '=== Initializing rosdep ==='
-                                rosdep init
+                                if [ ! -f /etc/ros/rosdep/sources.list.d/20-default.list ]; then
+                                    rosdep init
+                                fi
                                 rosdep update
                                 
                                 echo '=== Installing Required Packages ==='
