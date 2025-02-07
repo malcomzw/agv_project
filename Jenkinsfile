@@ -10,6 +10,10 @@ pipeline {
 
     environment {
         GIT_COMMIT_SHORT = ''
+        WORKSPACE_OWNER = sh(
+            script: 'id -un',
+            returnStdout: true
+        ).trim()
     }
 
     stages {
@@ -17,6 +21,15 @@ pipeline {
             steps {
                 script {
                     try {
+                        sh '''
+                            # Attempt to change ownership if needed
+                            sudo chown -R $(whoami):$(whoami) $WORKSPACE || true
+                            
+                            # Force remove workspace contents
+                            rm -rf $WORKSPACE/* || true
+                            rm -rf $WORKSPACE/.* || true
+                        '''
+
                         cleanWs(
                             cleanWhenNotBuilt: false,
                             cleanWhenAborted: true,
@@ -29,7 +42,7 @@ pipeline {
                         )
                     } catch (Exception e) {
                         echo "Warning: Workspace cleanup failed: ${e.message}"
-                        sh 'rm -rf $WORKSPACE/* || true'
+                        sh 'sudo rm -rf $WORKSPACE || true'
                     }
                 }
             }
@@ -52,10 +65,9 @@ pipeline {
         stage('Workspace Info') {
             steps {
                 sh '''
-                    echo "Workspace contents:"
+                    echo "Workspace: $WORKSPACE"
+                    pwd
                     ls -la
-                    echo "\nDisk space:"
-                    df -h .
                 '''
             }
         }
@@ -128,7 +140,6 @@ pipeline {
                 failure {
                     echo 'Some tests failed!'
                     script {
-                        // Detailed failure debugging
                         sh '''
                             echo "=== FAILURE DEBUGGING ==="
                             echo "Contents of test_results directory:"
@@ -199,18 +210,21 @@ pipeline {
     post {
         always {
             script {
-                // Placeholder for test reporting
-                // Ensure a dummy test report exists to prevent JUnit configuration error
-                sh '''
-                    mkdir -p test-results
-                    echo '<?xml version="1.0" encoding="UTF-8"?>
+                try {
+                    sh '''
+                        mkdir -p $WORKSPACE/test-results
+                        chmod 777 $WORKSPACE/test-results
+                        echo '<?xml version="1.0" encoding="UTF-8"?>
 <testsuites>
     <testsuite name="placeholder" tests="1" failures="0" errors="0">
         <testcase classname="PlaceholderTest" name="placeholderTest"/>
     </testsuite>
-</testsuites>' > test-results/dummy-test-report.xml
-                '''
-                junit allowEmptyResults: true, testResults: 'test-results/*.xml'
+</testsuites>' > $WORKSPACE/test-results/dummy-test-report.xml
+                    '''
+                    junit allowEmptyResults: true, testResults: 'test-results/*.xml'
+                } catch (Exception e) {
+                    echo "Test reporting failed: ${e.message}"
+                }
             }
             echo "Build completed! Commit: ${env.GIT_COMMIT_SHORT}"
         }
@@ -219,6 +233,12 @@ pipeline {
         }
         failure {
             echo "Build failed!"
+        }
+        cleanup {
+            sh '''
+                sudo rm -rf $WORKSPACE/* || true
+                sudo rm -rf $WORKSPACE/.* || true
+            '''
         }
     }
 }
