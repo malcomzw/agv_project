@@ -8,6 +8,10 @@ pipeline {
         disableConcurrentBuilds()
     }
 
+    environment {
+        GIT_COMMIT_SHORT = ''
+    }
+
     stages {
         stage('Cleanup') {
             steps {
@@ -18,12 +22,14 @@ pipeline {
         stage('Checkout') {
             steps {
                 checkout scm
-                sh '''
-                    git rev-parse HEAD > .git-commit
-                    echo "Build from commit: $(cat .git-commit)"
-                    echo "On branch: $(git rev-parse --abbrev-ref HEAD)"
-                    git show -s --format=%B HEAD
-                '''
+                script {
+                    env.GIT_COMMIT_SHORT = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
+                    sh '''
+                        echo "Build from commit: ${GIT_COMMIT_SHORT}"
+                        echo "On branch: $(git rev-parse --abbrev-ref HEAD)"
+                        git show -s --format=%B HEAD
+                    '''
+                }
             }
         }
 
@@ -41,10 +47,10 @@ pipeline {
 
     post {
         success {
-            echo "Build succeeded! Commit: $(cat .git-commit)"
+            echo "Build succeeded! Commit: ${env.GIT_COMMIT_SHORT}"
         }
         failure {
-            echo "Build failed! Commit: $(cat .git-commit)"
+            echo "Build failed! Commit: ${env.GIT_COMMIT_SHORT}"
         }
         always {
             echo 'Pipeline completed.'
