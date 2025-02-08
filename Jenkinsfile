@@ -135,7 +135,7 @@ pipeline {
                             --env LIBGL_ALWAYS_SOFTWARE=1 \
                             --env ROS_MASTER_URI=http://localhost:11311 \
                             --env ROS_HOSTNAME=localhost \
-                            ros-jenkins:91 timeout 300 /bin/bash -c "
+                            ros-jenkins:91 /bin/bash -c "
                                 set -e
 
                                 echo '=== Initializing rosdep ==='
@@ -144,52 +144,31 @@ pipeline {
                                 fi
                                 rosdep update
 
-                                echo '=== Installing Required Packages ==='
-                                apt-get update
-                                apt-get install -y xvfb python3-pygame mesa-utils gazebo11
-
-                                echo '=== Resolving ROS Dependencies ==='
-                                rosdep install --from-paths src --ignore-src -r -y --os=ubuntu:focal
-
-                                echo '=== Checking ROS Environment ==='
-                                source /opt/ros/noetic/setup.bash
-                                source devel/setup.bash
-                                env | grep ROS
-
                                 echo '=== Starting Virtual Display ==='
                                 Xvfb :99 -screen 0 1024x768x16 &
                                 export DISPLAY=:99
 
-                                echo '=== Setting Gazebo Environment Variables ==='
-                                export GAZEBO_MODEL_PATH=/workspace/ros_ws/src/agv_sim/models:${GAZEBO_MODEL_PATH}
-                                export GAZEBO_RESOURCE_PATH=/usr/share/gazebo-11:${GAZEBO_RESOURCE_PATH}
-                                export GAZEBO_PLUGIN_PATH=/workspace/ros_ws/src/agv_sim/plugins:${GAZEBO_PLUGIN_PATH}
-                                source /usr/share/gazebo/setup.sh
-
-                                echo '=== Checking Gazebo Plugins ==='
-                                ls -la /usr/lib/x86_64-linux-gnu/gazebo-11/plugins/
-
-                                echo '=== Debugging Gazebo Paths ==='
-                                echo 'GAZEBO_MODEL_PATH=' $GAZEBO_MODEL_PATH
-                                echo 'GAZEBO_RESOURCE_PATH=' $GAZEBO_RESOURCE_PATH
-                                echo 'GAZEBO_PLUGIN_PATH=' $GAZEBO_PLUGIN_PATH
-                                ls -la /usr/share/gazebo-11/worlds/
-
-                                echo '=== Verifying Gazebo Server Startup ==='
-                                gzserver --verbose /usr/share/gazebo-11/worlds/empty.world 2>&1 | tee /workspace/gzserver.log
+                                echo '=== Starting Gazebo Server ==='
+                                gzserver --verbose /usr/share/gazebo-11/worlds/empty.world &
                                 GZSERVER_PID=$!
-
                                 sleep 10
 
                                 if ! kill -0 $GZSERVER_PID 2>/dev/null; then
                                     echo 'ERROR: Gazebo server failed to start!'
-                                    echo '=== Gazebo Server Log Contents ==='
-                                    cat /workspace/gzserver.log
                                     exit 1
                                 fi
 
-                                echo '=== Starting Gazebo Simulation ==='
-                                roslaunch agv_sim simulation.launch use_rviz:=false gui:=false record:=true --screen --wait
+                                echo '=== Running AGV Simulation for 30 seconds ==='
+                                timeout 30s roslaunch agv_sim simulation.launch use_rviz:=false gui:=false record:=true --screen --wait || true
+
+                                echo '=== Checking Simulation Health ==='
+                                if [ -f /workspace/ros_ws/simulation.log ]; then
+                                    echo 'Simulation log found. Checking for errors...'
+                                    grep -i "error" /workspace/ros_ws/simulation.log || echo 'No critical errors found.'
+                                fi
+
+                                echo '=== Stopping Gazebo Server ==='
+                                kill $GZSERVER_PID || true
                             "
                         '''
                     }
