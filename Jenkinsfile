@@ -1,4 +1,9 @@
-@Library('jenkins-ros-library@main') _
+// Configure the Jenkins shared library
+library identifier: 'jenkins-ros-library@main',
+        retriever: modernSCM([
+            $class: 'GitSCMSource',
+            remote: 'https://github.com/malcomzw/jenkins-ros-library.git'
+        ])
 
 pipeline {
     agent any
