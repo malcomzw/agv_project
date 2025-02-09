@@ -141,7 +141,7 @@ pipeline {
 
                                 # Start a background process with timeout handling
                                 (
-                                    roslaunch agv_sim simulation.launch use_rviz:=false gui:=false record:=true --screen --wait &
+                                    roslaunch agv_sim launch/simulation.launch use_rviz:=false gui:=false record:=true --screen --wait &
                                     SIM_PID=\$!
                                     sleep 300
                                     if kill -0 \$SIM_PID 2>/dev/null; then
