@@ -36,14 +36,14 @@ RUN echo 'source /opt/ros/noetic/setup.bash' >> ~/.bashrc && \
     echo 'source /opt/ros/noetic/setup.bash' >> /etc/bash.bashrc
 
 # Install additional Python packages
-RUN pip3 install \
+RUN pip3 install --no-cache-dir \
     rospkg \
     catkin_pkg \
     empy \
     defusedxml \
     nose \
-    pytest \
-    pytest-html
+    'pytest==6.2.4' \
+    'pytest-html==2.1.1'
 
 # Default command
 CMD ["/bin/bash"]

@@ -82,35 +82,28 @@ pipeline {
         stage('Run Tests') {
             steps {
                 script {
-                    sh """
-                        docker run --rm \
-                            -v ${WORKSPACE}:/workspace \
-                            -w /workspace/ros_ws \
-                            ros-jenkins:\${BUILD_NUMBER} /bin/bash -c \
-                            "source /opt/ros/noetic/setup.bash && \
-                            source devel/setup.bash && \
-                            mkdir -p build/test_results test_results && \
-                            catkin run_tests --no-deps && \
-                            catkin_test_results build/test_results --verbose > test_results/summary.txt && \
-                            find build -type d -name test_results -exec cp -r {} /workspace/ros_ws/test_results/ \\; || true && \
+                    // Run ROS tests
+                    sh '''
+                        docker run --rm -v ${WORKSPACE}:/workspace -w /workspace/ros_ws ros-jenkins:${BUILD_ID} /bin/bash -c "
+                            source /opt/ros/noetic/setup.bash &&
+                            source devel/setup.bash &&
+                            mkdir -p build/test_results test_results &&
+                            catkin run_tests --no-deps &&
+                            catkin_test_results build/test_results --verbose > test_results/summary.txt &&
+                            find build -type d -name test_results -exec cp -r {} /workspace/ros_ws/test_results/ \\; || true &&
                             find build -name '*.xml' -exec cp {} /workspace/ros_ws/test_results/ \\; || true"
-                    """
+                    '''
                 }
             }
             post {
                 always {
-                    junit allowEmptyResults: true, testResults: 'ros_ws/**/test_results/**/*.xml'
-                    sh '''
-                        docker run --rm \
-                            -v ${WORKSPACE}:/workspace \
-                            -w /workspace/ros_ws \
-                            ros-jenkins:${BUILD_NUMBER} /bin/bash -c \
-                            "python3 -m pytest src/agv_sim/test --html=test-report.html --self-contained-html"
-                    '''
-                    archiveArtifacts artifacts: 'ros_ws/test-report.html', allowEmptyArchive: true
+                    junit '**/test_results/**/*.xml'
                 }
                 success {
                     echo 'All tests passed!'
+                }
+                failure {
+                    echo 'Tests failed!'
                 }
             }
         }
