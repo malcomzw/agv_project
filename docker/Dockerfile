@@ -42,7 +42,8 @@ RUN pip3 install \
     empy \
     defusedxml \
     nose \
-    pytest
+    pytest \
+    pytest-html
 
 # Default command
 CMD ["/bin/bash"]

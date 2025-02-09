@@ -46,7 +46,7 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t ros-jenkins:${BUILD_ID} -f docker/Dockerfile .'
+                sh 'docker build -t ros-jenkins:${BUILD_NUMBER} -f docker/Dockerfile .'
             }
         }
 
@@ -56,7 +56,7 @@ pipeline {
                     docker run --rm \
                         -v ${WORKSPACE}:/workspace \
                         -w /workspace/ros_ws \
-                        ros-jenkins:${BUILD_ID} \
+                        ros-jenkins:${BUILD_NUMBER} \
                         /bin/bash -c '
                             source /opt/ros/noetic/setup.bash && \
                             rm -rf .catkin_tools build devel logs && \
@@ -82,51 +82,35 @@ pipeline {
         stage('Run Tests') {
             steps {
                 script {
-                    sh '''
-                    docker run --rm -v /var/lib/jenkins/workspace/ros_pipeline1:/workspace -w /workspace/ros_ws ros-jenkins:80 /bin/bash -c "
-                        source /opt/ros/noetic/setup.bash &&
-                        source devel/setup.bash &&
-                        mkdir -p build/test_results test_results &&
-                        catkin run_tests --no-deps &&
-                        catkin_test_results build/test_results --verbose > test_results/summary.txt &&
-                        find build -type d -name test_results -exec cp -r {} /workspace/ros_ws/test_results/ \\; || true &&
-                        find build -name '*.xml' -exec cp {} /workspace/ros_ws/test_results/ \\; || true"
-                    '''
+                    sh """
+                        docker run --rm \
+                            -v ${WORKSPACE}:/workspace \
+                            -w /workspace/ros_ws \
+                            ros-jenkins:\${BUILD_NUMBER} /bin/bash -c \
+                            "source /opt/ros/noetic/setup.bash && \
+                            source devel/setup.bash && \
+                            mkdir -p build/test_results test_results && \
+                            catkin run_tests --no-deps && \
+                            catkin_test_results build/test_results --verbose > test_results/summary.txt && \
+                            find build -type d -name test_results -exec cp -r {} /workspace/ros_ws/test_results/ \\; || true && \
+                            find build -name '*.xml' -exec cp {} /workspace/ros_ws/test_results/ \\; || true"
+                    """
                 }
             }
             post {
                 always {
-                    script {
-                        sh '''
-                        echo "=== DEBUG: Test Results Directories ==="
-                        find /var/lib/jenkins/workspace/ros_pipeline1/ros_ws -type d -name test_results
-                        echo "=== DEBUG: XML Files Found ==="
-                        find /var/lib/jenkins/workspace/ros_pipeline1/ros_ws -name "*.xml"
-                        '''
-                    }
-                    junit allowEmptyResults: true, testResults: 'ros_ws/**/test_results/*.xml'
+                    junit allowEmptyResults: true, testResults: 'ros_ws/**/test_results/**/*.xml'
                     sh '''
-                      pip3 install pytest-html
-                      python3 -m pytest ros_ws/src/agv_sim/test \
-                        --html=test-report.html \
-                        --self-contained-html
+                        docker run --rm \
+                            -v ${WORKSPACE}:/workspace \
+                            -w /workspace/ros_ws \
+                            ros-jenkins:${BUILD_NUMBER} /bin/bash -c \
+                            "python3 -m pytest src/agv_sim/test --html=test-report.html --self-contained-html"
                     '''
+                    archiveArtifacts artifacts: 'ros_ws/test-report.html', allowEmptyArchive: true
                 }
                 success {
                     echo 'All tests passed!'
-                }
-                failure {
-                    echo 'Some tests failed!'
-                    script {
-                        // Detailed failure debugging
-                        sh '''
-                            echo "=== FAILURE DEBUGGING ==="
-                            echo "Contents of test_results directory:"
-                            ls -la ros_ws/test_results/ || true
-                            echo "\n=== Detailed XML Search ==="
-                            find ros_ws -name "*.xml" -ls || true
-                        '''
-                    }
                 }
             }
         }
@@ -146,62 +130,39 @@ pipeline {
                                 --env LIBGL_ALWAYS_SOFTWARE=1 \
                                 --env ROS_MASTER_URI=http://localhost:11311 \
                                 --env ROS_HOSTNAME=localhost \
-                                ros-jenkins:${BUILD_ID} bash -c "
+                                ros-jenkins:${BUILD_NUMBER} bash -c "\
                                     source /opt/ros/noetic/setup.bash && \
                                     catkin build && \
                                     source devel/setup.bash && \
                                     
                                     # Run simulation with timeout
-                                    timeout 600s roslaunch agv_sim simulation.launch \\
-                                        use_rviz:=false \\
-                                        gui:=false \\
-                                        record:=true \\
-                                        --screen \\
-                                        --wait
-                                " || SIMULATION_EXIT_CODE=$?
-
-                            # Check the exit code
-                            if [ "$SIMULATION_EXIT_CODE" = "124" ]; then
-                                echo "Simulation reached the timeout. Stopping gracefully..."
-                                exit 0
-                            elif [ "$SIMULATION_EXIT_CODE" != "0" ]; then
-                                echo "Simulation failed with exit code $SIMULATION_EXIT_CODE"
-                                exit 1
-                            else
-                                echo "Simulation completed successfully."
-                                exit 0
-                            fi
+                                    timeout 600s roslaunch agv_sim simulation.launch \
+                                        use_rviz:=false \
+                                        gui:=false \
+                                        record:=true \
+                                        --screen \
+                                        --wait"
                         ''',
                         returnStatus: true
                     )
-                    
-                    // Handle the result
-                    if (simulationStatus == 0) {
-                        echo "Gazebo Simulation Deployment Passed (Completed or Stopped at Timeout)"
-                    } else {
-                        echo "Gazebo Simulation Deployment Failed"
-                        error "Simulation failed with an unexpected error"
-                    }
-                }
-                
-                // Archive simulation logs if available
-                script {
-                    if (fileExists('ros_ws/simulation_results')) {
-                        archiveArtifacts artifacts: 'ros_ws/simulation_results/**/*', fingerprint: true, allowEmptyArchive: true
+
+                    if (simulationStatus == 124) {
+                        echo "Simulation reached the timeout. Stopping gracefully..."
+                        return 0
+                    } else if (simulationStatus != 0) {
+                        error "Simulation failed with exit code ${simulationStatus}"
                     }
                 }
             }
-            
             post {
                 success {
-                    echo "Gazebo Simulation Deployment Completed Successfully or Timed Out Gracefully"
+                    echo "Gazebo Simulation Deployment Passed (Completed or Stopped at Timeout)"
                 }
                 failure {
-                    echo "Gazebo Simulation Deployment Encountered an Error"
+                    error "Gazebo Simulation Deployment Failed"
                 }
                 always {
-                    // Ensure cleanup
-                    sh 'docker ps -q --filter "ancestor=ros-jenkins:${BUILD_ID}" | xargs -r docker stop'
+                    sh 'docker ps -q --filter "ancestor=ros-jenkins:${BUILD_NUMBER}" | xargs -r docker stop'
                 }
             }
         }
