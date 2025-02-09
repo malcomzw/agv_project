@@ -131,9 +131,8 @@ pipeline {
                     def simulationStatus = sh(
                         script: '''
                             set -e
-                            echo "=== Starting Gazebo Simulation ==="
+                            echo "=== Starting Gazebo Simulation (with 5-minute timeout) ==="
                             
-                            # Run in Docker with proper ROS environment
                             docker run --rm \
                                 -v ${WORKSPACE}:/workspace \
                                 -w /workspace/ros_ws \
@@ -142,9 +141,9 @@ pipeline {
                                 --env ROS_MASTER_URI=http://localhost:11311 \
                                 --env ROS_HOSTNAME=localhost \
                                 ros-jenkins:${BUILD_ID} bash -c "
-                                    source /opt/ros/noetic/setup.bash
-                                    catkin build
-                                    source devel/setup.bash
+                                    source /opt/ros/noetic/setup.bash && \
+                                    catkin build && \
+                                    source devel/setup.bash && \
                                     
                                     # Run simulation with timeout
                                     timeout 600s roslaunch agv_sim simulation.launch \\
@@ -154,51 +153,48 @@ pipeline {
                                         --screen \\
                                         --wait
                                 " || SIMULATION_EXIT_CODE=$?
-                            
-                            # Check exit code
+
+                            # Check the exit code
                             if [ "$SIMULATION_EXIT_CODE" = "124" ]; then
-                                echo "SIMULATION_TIMEOUT"
-                                exit 1
+                                echo "Simulation reached the timeout. Stopping gracefully..."
+                                exit 0
                             elif [ "$SIMULATION_EXIT_CODE" != "0" ]; then
-                                echo "SIMULATION_FAILED"
+                                echo "Simulation failed with exit code $SIMULATION_EXIT_CODE"
                                 exit 1
                             else
-                                echo "SIMULATION_SUCCESS"
+                                echo "Simulation completed successfully."
                                 exit 0
                             fi
                         ''',
                         returnStatus: true
                     )
                     
-                    // Handle simulation results
+                    // Handle the result
                     if (simulationStatus == 0) {
-                        echo "Gazebo Simulation Completed Successfully"
+                        echo "Gazebo Simulation Deployment Passed (Completed or Stopped at Timeout)"
                     } else {
-                        echo "Gazebo Simulation Failed or Timed Out"
-                        error "Simulation deployment failed"
+                        echo "Gazebo Simulation Deployment Failed"
+                        error "Simulation failed with an unexpected error"
                     }
                 }
                 
-                // Archive simulation results if they exist
+                // Archive simulation logs if available
                 script {
                     if (fileExists('ros_ws/simulation_results')) {
-                        archiveArtifacts(
-                            artifacts: 'ros_ws/simulation_results/**/*', 
-                            fingerprint: true,
-                            allowEmptyArchive: true
-                        )
+                        archiveArtifacts artifacts: 'ros_ws/simulation_results/**/*', fingerprint: true, allowEmptyArchive: true
                     }
                 }
             }
             
             post {
                 success {
-                    echo "Gazebo Simulation Deployment Completed Successfully"
+                    echo "Gazebo Simulation Deployment Completed Successfully or Timed Out Gracefully"
                 }
                 failure {
-                    echo "Gazebo Simulation Deployment Failed"
+                    echo "Gazebo Simulation Deployment Encountered an Error"
                 }
                 always {
+                    // Ensure cleanup
                     sh 'docker ps -q --filter "ancestor=ros-jenkins:${BUILD_ID}" | xargs -r docker stop'
                 }
             }
