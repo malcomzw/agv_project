@@ -1,3 +1,5 @@
+@Library('jenkins-ros-library@main') _
+
 pipeline {
     agent any
 
@@ -52,22 +54,13 @@ pipeline {
 
         stage('Build ROS Package') {
             steps {
-                sh '''
-                    docker run --rm \
-                        -v ${WORKSPACE}:/workspace \
-                        -w /workspace/ros_ws \
-                        ros-jenkins:${BUILD_NUMBER} \
-                        /bin/bash -c '
-                            source /opt/ros/noetic/setup.bash && \
-                            rm -rf .catkin_tools build devel logs && \
-                            catkin init && \
-                            catkin clean -y && \
-                            catkin build --summarize \
-                                --no-status \
-                                --force-color \
-                                --cmake-args -DCMAKE_BUILD_TYPE=Release
-                        '
-                '''
+                script {
+                    def config = pipelineConfig.getConfig()
+                    rosUtils.buildRosPackage(
+                        dockerImage: config.dockerImage,
+                        buildNumber: env.BUILD_NUMBER
+                    )
+                }
             }
             post {
                 success {
