@@ -41,7 +41,8 @@ RUN pip3 install \
     catkin_pkg \
     empy \
     defusedxml \
-    nose
+    nose \
+    pytest
 
 # Default command
 CMD ["/bin/bash"]

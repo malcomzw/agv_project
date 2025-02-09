@@ -104,7 +104,13 @@ pipeline {
                         find /var/lib/jenkins/workspace/ros_pipeline1/ros_ws -name "*.xml"
                         '''
                     }
-                    junit allowEmptyResults: true, testResults: 'ros_ws/test_results/**/*.xml'
+                    junit allowEmptyResults: true, testResults: 'ros_ws/**/test_results/*.xml'
+                    sh '''
+                      pip3 install pytest-html
+                      python3 -m pytest ros_ws/src/agv_sim/test \
+                        --html=test-report.html \
+                        --self-contained-html
+                    '''
                 }
                 success {
                     echo 'All tests passed!'
@@ -131,7 +137,7 @@ pipeline {
                     def simulationStatus = sh(
                         script: '''
                             set -e
-                            echo "=== Starting Gazebo Simulation (with 5-minute timeout) ==="
+                            echo "=== Starting Gazebo Simulation (with 10-minute timeout) ==="
                             
                             docker run --rm \
                                 -v ${WORKSPACE}:/workspace \
@@ -146,7 +152,7 @@ pipeline {
                                     source devel/setup.bash && \
                                     
                                     # Run simulation with timeout
-                                    timeout 300s roslaunch agv_sim simulation.launch \\
+                                    timeout 600s roslaunch agv_sim simulation.launch \\
                                         use_rviz:=false \\
                                         gui:=false \\
                                         record:=true \\
@@ -322,7 +328,7 @@ pipeline {
         }
         always {
             echo 'Pipeline completed.'
-            junit 'ros_ws/test_results/**/*.xml'
+            junit 'ros_ws/**/test_results/*.xml'
             cleanWs()
         }
     }
