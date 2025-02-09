@@ -146,7 +146,7 @@ pipeline {
                                     source devel/setup.bash && \
                                     
                                     # Run simulation with timeout
-                                    timeout 600s roslaunch agv_sim simulation.launch \\
+                                    timeout 300s roslaunch agv_sim simulation.launch \\
                                         use_rviz:=false \\
                                         gui:=false \\
                                         record:=true \\
