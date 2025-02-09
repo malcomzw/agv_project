@@ -131,22 +131,29 @@ pipeline {
                     def simulationStatus = sh(
                         script: '''
                             set -e
-                            # Ensure clean environment
-                            mkdir -p /tmp/simulation_results
+                            echo "=== Starting Gazebo Simulation ==="
                             
-                            # Run simulation with timeout and capture exit status
-                            timeout 300s bash -c '
-                                source /opt/ros/noetic/setup.bash
-                                source devel/setup.bash
-                                
-                                # Run roslaunch with detailed logging
-                                roslaunch agv_sim launch/simulation.launch \\
-                                    use_rviz:=false \\
-                                    gui:=false \\
-                                    record:=true \\
-                                    --screen \\
-                                    --wait
-                            ' || SIMULATION_EXIT_CODE=$?
+                            # Run in Docker with proper ROS environment
+                            docker run --rm \
+                                -v ${WORKSPACE}:/workspace \
+                                -w /workspace/ros_ws \
+                                --env DISPLAY=:99 \
+                                --env LIBGL_ALWAYS_SOFTWARE=1 \
+                                --env ROS_MASTER_URI=http://localhost:11311 \
+                                --env ROS_HOSTNAME=localhost \
+                                ros-jenkins:${BUILD_ID} bash -c "
+                                    source /opt/ros/noetic/setup.bash
+                                    catkin build
+                                    source devel/setup.bash
+                                    
+                                    # Run simulation with timeout
+                                    timeout 300s roslaunch agv_sim simulation.launch \\
+                                        use_rviz:=false \\
+                                        gui:=false \\
+                                        record:=true \\
+                                        --screen \\
+                                        --wait
+                                " || SIMULATION_EXIT_CODE=$?
                             
                             # Check exit code
                             if [ "$SIMULATION_EXIT_CODE" = "124" ]; then
@@ -166,10 +173,9 @@ pipeline {
                     // Handle simulation results
                     if (simulationStatus == 0) {
                         echo "Gazebo Simulation Completed Successfully"
-                    } else if (simulationStatus == 1) {
+                    } else {
                         echo "Gazebo Simulation Failed or Timed Out"
-                        // Optionally, you can choose to fail the stage
-                        // error "Simulation deployment failed"
+                        error "Simulation deployment failed"
                     }
                 }
                 
@@ -185,17 +191,15 @@ pipeline {
                 }
             }
             
-            // Post-stage actions
             post {
                 success {
-                    echo "Gazebo Simulation Deployment Completed"
+                    echo "Gazebo Simulation Deployment Completed Successfully"
                 }
                 failure {
                     echo "Gazebo Simulation Deployment Failed"
                 }
                 always {
-                    // Cleanup actions
-                    sh 'rm -rf /tmp/simulation_results || true'
+                    sh 'docker ps -q --filter "ancestor=ros-jenkins:${BUILD_ID}" | xargs -r docker stop'
                 }
             }
         }
