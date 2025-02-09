@@ -114,7 +114,7 @@ pipeline {
                     def simulationStatus = sh(
                         script: '''
                             set -e
-                            echo "=== Starting Gazebo Simulation (with 10-minute timeout) ==="
+                            echo "=== Starting Gazebo Simulation (with 5-minute timeout) ==="
                             
                             docker run --rm \
                                 -v ${WORKSPACE}:/workspace \
@@ -129,7 +129,7 @@ pipeline {
                                     source devel/setup.bash && \
                                     
                                     # Run simulation with timeout
-                                    timeout 600s roslaunch agv_sim simulation.launch \
+                                    timeout 300s roslaunch agv_sim simulation.launch \
                                         use_rviz:=false \
                                         gui:=false \
                                         record:=true \
@@ -140,7 +140,7 @@ pipeline {
                     )
 
                     if (simulationStatus == 124) {
-                        echo "Simulation reached the timeout. Stopping gracefully..."
+                        echo "Simulation reached the expected 5-minute timeout. Stopping gracefully..."
                         return 0
                     } else if (simulationStatus != 0) {
                         error "Simulation failed with exit code ${simulationStatus}"
