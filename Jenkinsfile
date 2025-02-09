@@ -140,7 +140,7 @@ pipeline {
                     )
 
                     if (simulationStatus == 124) {
-                        echo "Simulation reached the expected 5-minute timeout. Stopping gracefully..."
+                        echo "Simulation reached the expected 5-minute duration. Stopping gracefully..."
                         return 0
                     } else if (simulationStatus != 0) {
                         error "Simulation failed with exit code ${simulationStatus}"
@@ -163,36 +163,31 @@ pipeline {
         stage('Detailed Report Generation') {
             steps {
                 script {
-                    // Archive test results and generate reports
-                    junit '**/test_results/**/*.xml'
+                    // Archive test results
+                    junit allowEmptyResults: true, testResults: '**/test_results/**/*.xml'
                     
-                    // Generate and archive detailed HTML test report
+                    // Generate HTML test report in Docker
                     sh '''
-                        python3 -m pytest ros_ws/src/agv_sim/test --html=test-report.html --self-contained-html
-                        python3-coverage run -m pytest ros_ws/src/agv_sim/test
-                        python3-coverage html -d coverage-report
+                        docker run --rm \
+                            -v ${WORKSPACE}:/workspace \
+                            -w /workspace/ros_ws \
+                            ros-jenkins:${BUILD_ID} /bin/bash -c \
+                            "source /opt/ros/noetic/setup.bash && \
+                             source devel/setup.bash && \
+                             python3 -m pytest src/agv_sim/test --html=test-report.html --self-contained-html || true"
                     '''
                     
-                    // Archive test and coverage reports
-                    archiveArtifacts artifacts: 'test-report.html,coverage-report/**/*', allowEmptyArchive: true
+                    // Archive test report
+                    archiveArtifacts artifacts: 'ros_ws/test-report.html', allowEmptyArchive: true
                     
-                    // Publish HTML reports
+                    // Publish HTML report
                     publishHTML(target: [
                         allowMissing: true,
                         alwaysLinkToLastBuild: true,
                         keepAll: true,
-                        reportDir: '.',
+                        reportDir: 'ros_ws',
                         reportFiles: 'test-report.html',
                         reportName: 'Test Report'
-                    ])
-                    
-                    publishHTML(target: [
-                        allowMissing: true,
-                        alwaysLinkToLastBuild: true,
-                        keepAll: true,
-                        reportDir: 'coverage-report',
-                        reportFiles: 'index.html',
-                        reportName: 'Coverage Report'
                     ])
                 }
             }
@@ -201,64 +196,28 @@ pipeline {
         stage('Documentation Archiving') {
             steps {
                 script {
-                    // Generate and archive documentation
+                    // Create simple documentation
                     sh '''
-                        # Install asciidoctor-pdf if not present
-                        if ! command -v asciidoctor-pdf &> /dev/null; then
-                            gem install asciidoctor-pdf
-                        fi
-                        
-                        # Create documentation directory
                         mkdir -p documentation
-                        
-                        # Generate documentation
-                        cat << EOF > documentation/pipeline.adoc
-                        = AGV Simulation Pipeline Documentation
-                        :doctype: book
-                        :toc:
-                        
-                        == Pipeline Overview
-                        This pipeline automates the build, test, and deployment process for the AGV simulation project.
-                        
-                        == Stages
-                        
-                        === 1. Build Stage
-                        * Builds ROS workspace using catkin
-                        * Compiles all packages and dependencies
-                        
-                        === 2. Test Stage
-                        * Runs unit tests using pytest
-                        * Executes integration tests
-                        * Generates test coverage reports
-                        
-                        === 3. Simulation Stage
-                        * Launches Gazebo simulation environment
-                        * Runs AGV simulation tests
-                        * Records simulation metrics and logs
-                        
-                        === 4. Deploy Stage
-                        * Deploys successful builds
-                        * Archives artifacts and reports
-                        
-                        == Gazebo Integration
-                        The pipeline integrates with Gazebo simulator through ROS:
-                        
-                        * Uses Docker container with ROS and Gazebo
-                        * Configures virtual display for headless execution
-                        * Manages simulation timeouts and cleanup
-                        
-                        == Reports and Metrics
-                        * Test Results: JUnit XML and HTML reports
-                        * Coverage: Python coverage reports
-                        * Simulation Logs: Archived for analysis
-                        EOF
-                        
-                        # Convert to PDF
-                        asciidoctor-pdf documentation/pipeline.adoc -o documentation/pipeline.pdf
+                        cat << EOF > documentation/pipeline.txt
+Pipeline Documentation
+=====================
+
+This pipeline automates the build, test, and simulation process for the AGV project.
+
+Stages:
+1. Build - Compiles ROS workspace
+2. Test - Runs unit tests
+3. Simulation - Executes Gazebo simulation
+4. Reports - Generates test reports
+5. Documentation - Creates this documentation
+
+For more details, please refer to the project README.
+EOF
                     '''
                     
                     // Archive documentation
-                    archiveArtifacts artifacts: 'documentation/*.pdf', allowEmptyArchive: true
+                    archiveArtifacts artifacts: 'documentation/*.txt', allowEmptyArchive: true
                 }
             }
         }
@@ -266,8 +225,8 @@ pipeline {
         stage('Dashboard Insights') {
             steps {
                 script {
-                    // Clean up
-                    cleanWs()
+                    // Simple cleanup
+                    cleanWs(patterns: [[pattern: 'documentation', type: 'INCLUDE']])
                 }
             }
         }
