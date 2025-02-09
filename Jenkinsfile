@@ -128,37 +128,74 @@ pipeline {
         stage('Gazebo Simulation Deployment') {
             steps {
                 script {
-                    catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
-                        sh '''
-                            echo "=== Starting Gazebo Simulation Deployment ==="
-                            docker run --rm -v /var/lib/jenkins/workspace/ros_pipeline1:/workspace -w /workspace/ros_ws \
-                            --env DISPLAY=:99 \
-                            --env LIBGL_ALWAYS_SOFTWARE=1 \
-                            --env ROS_MASTER_URI=http://localhost:11311 \
-                            --env ROS_HOSTNAME=localhost \
-                            ros-jenkins:91 bash -c "
-                                set -e
-
-                                # Start a background process with timeout handling
-                                (
-                                    roslaunch agv_sim launch/simulation.launch use_rviz:=false gui:=false record:=true --screen --wait &
-                                    SIM_PID=\$!
-                                    sleep 300
-                                    if kill -0 \$SIM_PID 2>/dev/null; then
-                                        echo 'Timeout reached. Terminating simulation.'
-                                        kill -9 \$SIM_PID
-                                    fi
-                                )
-
-                                echo '=== Gazebo Simulation Completed or Timed Out ==='
-                            "
-                        '''
+                    def simulationStatus = sh(
+                        script: '''
+                            set -e
+                            # Ensure clean environment
+                            mkdir -p /tmp/simulation_results
+                            
+                            # Run simulation with timeout and capture exit status
+                            timeout 300s bash -c '
+                                source /opt/ros/noetic/setup.bash
+                                source devel/setup.bash
+                                
+                                # Run roslaunch with detailed logging
+                                roslaunch agv_sim launch/simulation.launch \\
+                                    use_rviz:=false \\
+                                    gui:=false \\
+                                    record:=true \\
+                                    --screen \\
+                                    --wait
+                            ' || SIMULATION_EXIT_CODE=$?
+                            
+                            # Check exit code
+                            if [ "$SIMULATION_EXIT_CODE" = "124" ]; then
+                                echo "SIMULATION_TIMEOUT"
+                                exit 1
+                            elif [ "$SIMULATION_EXIT_CODE" != "0" ]; then
+                                echo "SIMULATION_FAILED"
+                                exit 1
+                            else
+                                echo "SIMULATION_SUCCESS"
+                                exit 0
+                            fi
+                        ''',
+                        returnStatus: true
+                    )
+                    
+                    // Handle simulation results
+                    if (simulationStatus == 0) {
+                        echo "Gazebo Simulation Completed Successfully"
+                    } else if (simulationStatus == 1) {
+                        echo "Gazebo Simulation Failed or Timed Out"
+                        // Optionally, you can choose to fail the stage
+                        // error "Simulation deployment failed"
                     }
                 }
+                
+                // Archive simulation results if they exist
                 script {
                     if (fileExists('ros_ws/simulation_results')) {
-                        archiveArtifacts artifacts: 'ros_ws/simulation_results/**/*', fingerprint: true
+                        archiveArtifacts(
+                            artifacts: 'ros_ws/simulation_results/**/*', 
+                            fingerprint: true,
+                            allowEmptyArchive: true
+                        )
                     }
+                }
+            }
+            
+            // Post-stage actions
+            post {
+                success {
+                    echo "Gazebo Simulation Deployment Completed"
+                }
+                failure {
+                    echo "Gazebo Simulation Deployment Failed"
+                }
+                always {
+                    // Cleanup actions
+                    sh 'rm -rf /tmp/simulation_results || true'
                 }
             }
         }
