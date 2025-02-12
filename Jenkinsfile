@@ -197,7 +197,7 @@ pipeline {
                     // Create simple documentation
                     sh '''
                         mkdir -p documentation
-                        cat << EOF > documentation/pipeline.pdf
+                        cat << EOF > documentation/jenkins_pipeline_documentation.pdf
 Pipeline Documentation
 =====================
 
@@ -216,8 +216,7 @@ EOF
                     '''
                     
                     // Archive documentation
-                    archiveArtifacts artifacts: 'documentation/*.txt', allowEmptyArchive: true
-                    archiveArtifacts artifacts: 'documentation/*.pdf', allowEmptyArchive: true
+                    archiveArtifacts artifacts: 'documentation/jenkins_pipeline_documentation.pdf', allowEmptyArchive: true
                 }
             }
         }
