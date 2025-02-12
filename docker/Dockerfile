@@ -43,7 +43,7 @@ RUN pip3 install --no-cache-dir \
     defusedxml \
     nose \
     'pytest==6.2.4' \
-    'pytest-html==2.1.1' \
+    'pytest-html==3.1.1' \
     fpdf \
     markdown2
 
