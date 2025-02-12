@@ -216,7 +216,7 @@ EOF
                     '''
                     
                     // Archive documentation
-                    archiveArtifacts artifacts: 'documentation/*.txt', allowEmptyArchive: true
+                    archiveArtifacts artifacts: 'documentation/*.pdf', allowEmptyArchive: true
                 }
             }
         }
