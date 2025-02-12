@@ -172,21 +172,21 @@ pipeline {
                             ros-jenkins:${BUILD_ID} /bin/bash -c \
                             "source /opt/ros/noetic/setup.bash && \
                              source devel/setup.bash && \
-                             mkdir -p test_results && \
-                             python3 -m pytest src/agv_sim/test --html=test_results/test-report.html --self-contained-html || true"
+                             mkdir -p reports/pytest && \
+                             python3 -m pytest src/test_package/test/unit --html=reports/pytest/test-report.html --self-contained-html || true"
                     '''
                     
                     // Archive test report
-                    archiveArtifacts artifacts: 'ros_ws/test_results/test-report.html', allowEmptyArchive: true
+                    archiveArtifacts artifacts: 'ros_ws/reports/pytest/test-report.html', allowEmptyArchive: true
                     
                     // Publish HTML report
                     publishHTML(target: [
                         allowMissing: true,
                         alwaysLinkToLastBuild: true,
                         keepAll: true,
-                        reportDir: 'ros_ws/test_results',
+                        reportDir: 'ros_ws/reports/pytest',
                         reportFiles: 'test-report.html',
-                        reportName: 'Test Report'
+                        reportName: 'Pytest Report'
                     ])
                 }
             }
