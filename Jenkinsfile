@@ -191,32 +191,11 @@ pipeline {
             }
         }
 
-        stage('Documentation Archiving') {
+        stage('Documentation') {
             steps {
                 script {
-                    // Create simple documentation
-                    sh '''
-                        mkdir -p documentation
-                        cat << EOF > documentation/jenkins_pipeline_documentation.pdf
-Pipeline Documentation
-=====================
-
-This pipeline automates the build, test, and simulation process for the AGV project.
-
-Stages:
-1. Build - Compiles ROS workspace
-2. Test - Runs unit tests
-3. Simulation - Executes Gazebo simulation
-4. Reports - Generates test reports
-5. Documentation - Creates this documentation
-
-For more details, please refer to the project guide.
-https://github.com/malcomzw/agv_project/blob/master/docs/jenkins_pipeline_documentation.pdf
-EOF
-                    '''
-                    
                     // Archive documentation
-                    archiveArtifacts artifacts: 'documentation/jenkins_pipeline_documentation.pdf', allowEmptyArchive: true
+                    archiveArtifacts artifacts: 'docs/jenkins_pipeline_documentation.pdf', allowEmptyArchive: true
                 }
             }
         }
