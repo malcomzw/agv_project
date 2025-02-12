@@ -197,7 +197,7 @@ pipeline {
                     // Create simple documentation
                     sh '''
                         mkdir -p documentation
-                        cat << EOF > documentation/pipeline.txt
+                        cat << EOF > documentation/pipeline.pdf
 Pipeline Documentation
 =====================
 
@@ -210,7 +210,8 @@ Stages:
 4. Reports - Generates test reports
 5. Documentation - Creates this documentation
 
-For more details, please refer to the project README.
+For more details, please refer to the project guide.
+https://github.com/malcomzw/agv_project/blob/master/docs/jenkins_pipeline_documentation.pdf
 EOF
                     '''
                     
